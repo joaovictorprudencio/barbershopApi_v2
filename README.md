@@ -2,7 +2,7 @@
   <img src="https://nodejs.org/static/images/logo.svg" width="120" alt="Node.js Logo" />
 </p>
 
-# 🚀 API Node.js + TypeScript + Prisma
+# 🚀 API com TypeScript +  Express + Prisma
 
 Este é um projeto de backend construído com [Express](https://expressjs.com/), [TypeScript](https://www.typescriptlang.org/) e [Prisma ORM](https://www.prisma.io/), seguindo boas práticas de organização e desenvolvimento. O banco de dados utilizado é o **PostgreSQL**.
 
