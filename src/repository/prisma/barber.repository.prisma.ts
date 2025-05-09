@@ -11,7 +11,7 @@ export class BarberRepositoryPrisma implements BarberRepository {
    async  create(barber: Barber): Promise<void> {
 
     const hashPassword = await bcrypt.hash(barber.password, 10);
-         barber.password = hashPassword;
+          barber.password = hashPassword;
 
        const barberSave = this.prisma.barber.create({
            data: {
