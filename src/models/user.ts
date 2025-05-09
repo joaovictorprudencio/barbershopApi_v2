@@ -1,7 +1,5 @@
 
-export type Time = {
-    id: number;
-}
+import { Time } from "./time";
 
 export type UserProps = {
     id: number;
