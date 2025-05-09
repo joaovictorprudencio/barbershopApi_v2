@@ -42,7 +42,7 @@ export class User {
         return this.props.numberPhone;
     }
 
-    public get Times(){
+    public get times(){
         return this.props.times;
     }
 
