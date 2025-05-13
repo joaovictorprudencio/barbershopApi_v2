@@ -6,7 +6,32 @@ import { TimeRepository } from "../time.repository";
 
 export class TimeRepositoryPrisma implements TimeRepository {
 
-    constructor(private readonly prisma: PrismaClient){}
+    constructor(private readonly prisma: PrismaClient) { }
+    finbyDate(date: Date): Promise<Time | null> {
+        throw new Error("Method not implemented.");
+    }
+
+
+    async findByDate(date: Date): Promise<Time[] | null> {
+        if (!date) {
+            return null;
+        }
+
+        const dataTimes = await this.prisma.time.findMany({
+            where: {
+                date: date
+            }
+        });
+
+        const times: Time[] = dataTimes.map(time => Time.persistence(
+            time.id,
+            time.available,
+            time.date,
+            time.userId
+        ));
+
+        return times;
+    }
 
     async create(time: Time): Promise<void> {
         const createTime = await this.prisma.time.create({
@@ -21,17 +46,17 @@ export class TimeRepositoryPrisma implements TimeRepository {
 
 
     async update(time: Time): Promise<void> {
-       const updateTime = await this.prisma.time.update({
-           where: {
-               id: time.id,
-           },
-           data: {
-               id: time.id,
-               available: time.available,
-               date: time.date,
-               userId: time.userId,
-           }
-       })
+        const updateTime = await this.prisma.time.update({
+            where: {
+                id: time.id,
+            },
+            data: {
+                id: time.id,
+                available: time.available,
+                date: time.date,
+                userId: time.userId,
+            }
+        })
     };
 
     async finbyId(timeId: number): Promise<Time | null> {
@@ -40,7 +65,7 @@ export class TimeRepositoryPrisma implements TimeRepository {
                 id: timeId,
             }
         })
-        
+
         if (!getTime) {
             return null;
         }
@@ -53,10 +78,10 @@ export class TimeRepositoryPrisma implements TimeRepository {
     };
 
     async delete(timeId: number): Promise<void> {
-       const deleteTime = await this.prisma.time.delete({
-           where: {
-               id: timeId
-           }
-       })
+        const deleteTime = await this.prisma.time.delete({
+            where: {
+                id: timeId
+            }
+        })
     };
 }   
