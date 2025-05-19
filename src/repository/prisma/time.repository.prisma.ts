@@ -11,6 +11,28 @@ export class TimeRepositoryPrisma implements TimeRepository {
         throw new Error("Method not implemented.");
     }
 
+    async validationData(dateTime: Date, state: boolean): Promise<Time | null> {
+        const time = await this.prisma.time.findFirst({
+            where: {
+                date: dateTime,
+                available: state
+            }
+        });
+
+        if (!time) {
+            return null;
+        }
+
+
+        return Time.persistence(
+            time.id,
+            time.available,
+            time.date,
+            time.userId
+        );
+
+    }
+
 
     async findByDate(date: Date): Promise<Time[] | null> {
         if (!date) {
