@@ -7,7 +7,9 @@ import { TimeRepository } from "../time.repository";
 export class TimeRepositoryPrisma implements TimeRepository {
 
     constructor(private readonly prisma: PrismaClient) { }
-    finbyDate(date: Date): Promise<Time | null> {
+
+
+    findByState(state: boolean): Promise<Time[] | null> {
         throw new Error("Method not implemented.");
     }
 
@@ -35,6 +37,7 @@ export class TimeRepositoryPrisma implements TimeRepository {
 
 
     async findByDate(date: Date): Promise<Time[] | null> {
+        
         if (!date) {
             return null;
         }
