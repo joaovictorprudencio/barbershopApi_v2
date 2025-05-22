@@ -9,8 +9,23 @@ export class TimeRepositoryPrisma implements TimeRepository {
     constructor(private readonly prisma: PrismaClient) { }
 
 
-    findByState(state: boolean): Promise<Time[] | null> {
-        throw new Error("Method not implemented.");
+   async findByState(state: boolean): Promise<Time[] | null> {
+        const timesAvaliable = await this.prisma.time.findMany({
+            where: {
+                available: state
+            }
+        });
+
+        if(!timesAvaliable) {
+            return null;
+        }
+
+        return timesAvaliable.map(time => Time.persistence(
+            time.id,
+            time.available,
+            time.date,
+            time.userId
+        ));
     }
 
     async validationData(dateTime: Date, state: boolean): Promise<Time | null> {
