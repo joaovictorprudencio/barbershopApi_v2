@@ -2,7 +2,6 @@
 import { Time } from "./time";
 
 export type UserProps = {
-    id: number;
     name: string;
     numberPhone: string;
     times: Time[];
@@ -20,18 +19,15 @@ export class User {
     
      public static persistence
      (
-        id: number,
         name: string,
         numberPhone: string,
         times: Time[]
      ){
-        return new User({id, name, numberPhone, times});
+        return new User({ name, numberPhone, times});
      }
     
     
-    public get id() {
-        return this.props.id;
-    }
+   
 
 
     public get name() {
