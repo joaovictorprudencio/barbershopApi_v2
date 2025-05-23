@@ -51,26 +51,31 @@ export class TimeRepositoryPrisma implements TimeRepository {
     }
 
 
-    async findByDate(date: Date): Promise<Time[] | null> {
+    async findByDate(date: Date): Promise<Time | null> {
         
         if (!date) {
             return null;
         }
 
-        const dataTimes = await this.prisma.time.findMany({
+        const dataTimes = await this.prisma.time.findFirst({
             where: {
                 date: date
             }
         });
 
-        const times: Time[] = dataTimes.map(time => Time.persistence(
-            time.id,
-            time.available,
-            time.date,
-            time.userId
-        ));
 
-        return times;
+        if(!dataTimes){
+            return null;
+        }
+
+   
+
+        return Time.persistence(
+            dataTimes.id,
+            dataTimes.available,
+            dataTimes.date,
+            dataTimes.userId,
+        )
     }
 
     async create(time: Time): Promise<void> {

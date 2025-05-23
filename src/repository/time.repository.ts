@@ -5,6 +5,6 @@ export interface TimeRepository {
     update(time: Time): Promise<void>;
     finbyId(timeId: number): Promise<Time | null>;
     findByState(state: boolean): Promise<Time[] | null>;
-    findByDate(date: Date): Promise<Time[] | null>;
+    findByDate(date: Date): Promise<Time | null>;
     delete(timeId: number): Promise<void>;
 }
