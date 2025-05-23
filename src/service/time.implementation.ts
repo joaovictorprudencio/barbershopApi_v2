@@ -11,7 +11,8 @@ export class TimeServiceIplement implements TimeService   {
     constructor(
         private readonly timeRepository: TimeRepositoryPrisma,
         private readonly userRepository: UserRepositoryPrisma
-    ) { };
+    ) { }
+;
     
   async  marchTime(time: createTimeDto): Promise<void> {
 
@@ -39,21 +40,40 @@ export class TimeServiceIplement implements TimeService   {
 
       }
 
-      
-
         
     
     }
-    uncheckTime(time: Time): Promise<void> {
-        throw new Error("Method not implemented.");
+   async  uncheckTime(time: Time): Promise<void> {
+
+       const timeUpdate = await this.timeRepository.finbyId(time.id);
+
+       if (timeUpdate) {
+           timeUpdate.available = false;
+           await this.timeRepository.update(timeUpdate);
+       }
+     
     }
-    listTimes(): Promise<Time[]> {
-        throw new Error("Method not implemented.");
+
+
+   async listTimesAvailable  (): Promise<Time[] | null> {
+
+      return await  this.timeRepository.findByState(true);
+      
     }
-    findByDate(date: Date): Promise<Time | null> {
-        throw new Error("Method not implemented.");
+
+
+    async listTimesUnavailable(): Promise<Time[] | null> {
+       return await  this.timeRepository.findByState(false);
     }
-    findByState(state: boolean): Promise<Time | null> {
+
+
+   async  findByDate(date: Date): Promise<Time | null> {
+
+      return await this.timeRepository.findByDate(date);
+        
+    }
+
+    findByState(state: boolean): Promise<Time[] | null> {
         throw new Error("Method not implemented.");
     }
 }
