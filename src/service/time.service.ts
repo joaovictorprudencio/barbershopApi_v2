@@ -1,19 +1,21 @@
+
+import { Barber } from "../models/barber";
 import { Time } from "../models/time";
+import { User } from "../models/user";
 
 
 export type createTimeDto =  {
     id: number,
     available: boolean,
     date: Date,
-    userId: number,
-    userName: string,
-    userNumberPhone: string,
-    userTimes: Time[] 
+     nameCustumer: string;
+    phoneCustumer: string;
 }
 
 
 export interface TimeService {
     marchTime(time: createTimeDto): Promise<void>;
+    generateTime(date: Date, inicio: Date, final: Date): Promise<void>
     uncheckTime(time: Time): Promise<void>;
     listTimesAvailable(): Promise<Time[] | null>;
     listTimesUnavailable(): Promise<Time[] | null>;

@@ -2,8 +2,12 @@
   "dependencies": {
     "@prisma/client": "^6.7.0",
     "bcryptjs": "^3.0.2",
+    "dayjs": "^1.11.13",
     "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "node-cron": "^4.2.0",
+    "timezone": "^1.0.23",
+    "utc": "^0.1.0"
   },
   "scripts": {
     "dev": "nodemon --exec tsx src/server.ts",

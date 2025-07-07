@@ -43,4 +43,15 @@ export class BarberRepositoryPrisma implements BarberRepository {
         );
     }
 
+    async findAll(): Promise<Barber[]> {
+        const barbers = await this.prisma.barber.findMany();
+        return barbers.map(barber => Barber.persistence(
+            barber.id,
+            barber.name,
+            barber.email,
+            barber.password,
+            barber.numberPhone
+        ));
+    }
+
 }
