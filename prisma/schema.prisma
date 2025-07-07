@@ -7,12 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id          Int    @id @default(autoincrement())
-  name        String
-  numberPhone String
-  times Time[]
-}
+
 
 model Barber {
   id          Int    @id @default(autoincrement())
@@ -26,6 +21,6 @@ model Time {
   id Int @id @default(autoincrement())
   available Boolean  @default(false)
   date DateTime
-  user User @relation(fields: [userId], references: [id])
-  userId Int
+  nameCustumer        String
+  phoneCustumer String
 }

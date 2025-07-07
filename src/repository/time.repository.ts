@@ -1,7 +1,7 @@
 import { Time } from "../models/time";
 
 export interface TimeRepository {
-    create(time: Time): Promise<void>;
+    create(available: boolean, date: Date, nameCustumer: string,phoneCustumer:string): Promise<void>;
     update(time: Time): Promise<void>;
     finbyId(timeId: number): Promise<Time | null>;
     findByState(state: boolean): Promise<Time[] | null>;

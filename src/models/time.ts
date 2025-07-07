@@ -6,7 +6,8 @@ export type TimeProps = {
     id: number;
     available: boolean;
     date: Date;
-    userId: number;
+    nameCustumer: string;
+    phoneCustumer: string;
 }
 
 export class Time {
@@ -24,9 +25,10 @@ export class Time {
             id: number,
             available: boolean,
             date: Date,
-            userId: number,
+            nameCustumer: string,
+            phoneCustumer: string,
         ) {
-        return new Time({ id, available, date, userId });
+        return new Time({ id, available, date, nameCustumer, phoneCustumer });
     }
 
 
@@ -43,10 +45,22 @@ export class Time {
         return this.props.date;
     }
 
+    public get nameCustumer() {
+        return this.props.nameCustumer;
+    }
 
 
-    public get userId() {
-        return this.props.userId;
+
+    public get phoneCustumer() {
+        return this.props.phoneCustumer;
+    }
+
+    public set phoneCustumer(phone: string) {
+        this.props.phoneCustumer = phone;
+    }
+
+    public set nameCustumer(name: string) {
+        this.props.nameCustumer = name;
     }
 
     public set available(state: boolean) {
@@ -57,8 +71,6 @@ export class Time {
         this.props.date = value;
     }
 
-    public set userId(value: number) {
-        this.props.userId = value;
-    }
+
 
 }

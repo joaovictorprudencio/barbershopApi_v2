@@ -1,22 +1,26 @@
 import { PrismaClient } from "@prisma/client";
 import { Time } from "../../models/time";
 import { TimeRepository } from "../time.repository";
+import { UserRepository } from "../user.repository";
 
 
 
 export class TimeRepositoryPrisma implements TimeRepository {
 
-    constructor(private readonly prisma: PrismaClient) { }
+    constructor(
+        private readonly prisma: PrismaClient,
+        private readonly userRepository: UserRepository
+    ) { }
 
 
-   async findByState(state: boolean): Promise<Time[] | null> {
+    async findByState(state: boolean): Promise<Time[] | null> {
         const timesAvaliable = await this.prisma.time.findMany({
             where: {
                 available: state
             }
         });
 
-        if(!timesAvaliable) {
+        if (!timesAvaliable) {
             return null;
         }
 
@@ -24,7 +28,8 @@ export class TimeRepositoryPrisma implements TimeRepository {
             time.id,
             time.available,
             time.date,
-            time.userId
+            time.nameCustumer,
+            time.phoneCustumer
         ));
     }
 
@@ -34,7 +39,7 @@ export class TimeRepositoryPrisma implements TimeRepository {
                 date: dateTime,
                 available: state
             }
-        });
+        }); 
 
         if (!time) {
             return null;
@@ -45,14 +50,15 @@ export class TimeRepositoryPrisma implements TimeRepository {
             time.id,
             time.available,
             time.date,
-            time.userId
+            time.nameCustumer,
+            time.phoneCustumer
         );
 
     }
 
 
     async findByDate(date: Date): Promise<Time | null> {
-        
+
         if (!date) {
             return null;
         }
@@ -64,27 +70,29 @@ export class TimeRepositoryPrisma implements TimeRepository {
         });
 
 
-        if(!dataTimes){
+        if (!dataTimes) {
             return null;
         }
 
-   
+
 
         return Time.persistence(
             dataTimes.id,
             dataTimes.available,
             dataTimes.date,
-            dataTimes.userId,
+            dataTimes.nameCustumer,
+            dataTimes.phoneCustumer
         )
     }
 
-    async create(time: Time): Promise<void> {
+    async create(available: boolean, date: Date, nameCustumer: string, phoneCustumer: string): Promise<void> {
+
         const createTime = await this.prisma.time.create({
             data: {
-                id: time.id,
-                available: time.available,
-                date: time.date,
-                userId: time.userId,
+                available,
+                date,
+                nameCustumer,
+                phoneCustumer
             }
         })
     };
@@ -99,7 +107,8 @@ export class TimeRepositoryPrisma implements TimeRepository {
                 id: time.id,
                 available: time.available,
                 date: time.date,
-                userId: time.userId,
+                nameCustumer: time.nameCustumer,
+                phoneCustumer: time.phoneCustumer
             }
         })
     };
@@ -118,7 +127,8 @@ export class TimeRepositoryPrisma implements TimeRepository {
             getTime.id,
             getTime.available,
             getTime.date,
-            getTime.userId,
+            getTime.nameCustumer,
+            getTime.phoneCustumer
         )
     };
 
