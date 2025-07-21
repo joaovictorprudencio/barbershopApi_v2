@@ -1,16 +1,28 @@
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import { Time } from "../../models/time";
 import { TimeRepository } from "../time.repository";
 import { UserRepository } from "../user.repository";
+import { DefaultArgs } from "@prisma/client/runtime/library";
 
 
 
 export class TimeRepositoryPrisma implements TimeRepository {
+    static build(prisma: PrismaClient) {
+       return new TimeRepositoryPrisma(prisma);
+    }
 
     constructor(
         private readonly prisma: PrismaClient,
-        private readonly userRepository: UserRepository
     ) { }
+   async deleteForAll(date: Date): Promise<void> {
+    await this.prisma.time.deleteMany({
+        where: {
+            date: {
+                lt: date // lt = less than (menor que)
+            }
+        }
+    });
+}
 
 
     async findByState(state: boolean): Promise<Time[] | null> {

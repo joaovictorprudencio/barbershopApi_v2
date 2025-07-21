@@ -7,4 +7,5 @@ export interface TimeRepository {
     findByState(state: boolean): Promise<Time[] | null>;
     findByDate(date: Date): Promise<Time | null>;
     delete(timeId: number): Promise<void>;
+    deleteForAll(date:Date): Promise<void>;
 }
