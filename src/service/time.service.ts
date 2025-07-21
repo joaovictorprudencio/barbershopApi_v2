@@ -15,8 +15,8 @@ export type createTimeDto =  {
 
 export interface TimeService {
     marchTime(time: createTimeDto): Promise<void>;
-    generateTime(date: Date, inicio: Date, final: Date): Promise<void>
-    uncheckTime(time: Time): Promise<void>;
+   
+    uncheckTime(id: number): Promise<void>;
     listTimesAvailable(): Promise<Time[] | null>;
     listTimesUnavailable(): Promise<Time[] | null>;
     findByDate(date: Date): Promise<Time | null>;
