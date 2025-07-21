@@ -1,19 +1,22 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { Barber } from '../../models/barber';
 import { BarberRepository } from '../barber.repository';
 import bcrypt from 'bcryptjs';
+import { barberCreateDto } from '../../service/barbeiro.service';
+import { DefaultArgs } from '@prisma/client/runtime/library';
 
 export class BarberRepositoryPrisma implements BarberRepository {
-
+   
     constructor(private readonly prisma: PrismaClient) {}
 
 
-   async  create(barber: Barber): Promise<void> {
 
-    const hashPassword = await bcrypt.hash(barber.password, 10);
-          barber.password = hashPassword;
+   async  create(barber: barberCreateDto): Promise<Barber> {
 
-       const barberSave = this.prisma.barber.create({
+   
+         
+
+       const barberSave = await this.prisma.barber.create({
            data: {
                name: barber.name,
                email: barber.email,
@@ -21,6 +24,15 @@ export class BarberRepositoryPrisma implements BarberRepository {
                numberPhone: barber.numberPhone,
            }
        });
+
+         return Barber.persistence(
+            barberSave.id,
+            barberSave.name,
+            barberSave.email,
+            barberSave.password,
+            barberSave.numberPhone
+        );
+    
     }
 
    async  findByEmail(email: string): Promise<Barber | null> {
@@ -52,6 +64,10 @@ export class BarberRepositoryPrisma implements BarberRepository {
             barber.password,
             barber.numberPhone
         ));
+    }
+
+ public static  build(prisma: PrismaClient) {
+        return new BarberRepositoryPrisma(prisma);
     }
 
 }
