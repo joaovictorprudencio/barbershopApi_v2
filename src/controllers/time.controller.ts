@@ -1,3 +1,4 @@
+import { time } from "console";
 import prisma from "../repository/prisma/lib/conection";
 import { TimeRepositoryPrisma } from "../repository/prisma/time.repository.prisma";
 import { TimeServiceIplement } from "../service/time.implementation";
@@ -18,20 +19,23 @@ export async function marchTime(req: Request, res: Response): Promise<Response> 
   try {
     if (!timeService) timeService = await initializeDependencies();
     
-    const { id, available, date, nameCustumer, phoneCustumer } = req.body;
+    const {  available, date, time, nameCustumer, phoneCustumer } = req.body;
     
     const createTime: createTimeDto = {
-      id,
       available,
       date,
+      time,
       nameCustumer,
       phoneCustumer
     };
 
-    const time = await timeService.marchTime(createTime);
-    return res.status(200).json(createTime);
+    console.log(createTime)
+
+    const timeMarch = await timeService.marchTime(createTime);
+
+    return res.status(200).json(timeMarch);
   } catch (error) {
-    return res.status(500).json({ error: "Erro ao marcar horário" });
+    return res.status(500).json({ error: `erro ao marcar ${time} ` });
   }
 }
 

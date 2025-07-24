@@ -20,10 +20,7 @@ export class TimeServiceIplement implements TimeService {
 
     public todayTimes: Time[] = [];
     public today = dayjs().tz('America/Sao_Paulo');
-    public inicio = dayjs(this.today).hour(8).minute(0).second(0).toDate();
-    public fim = dayjs(this.today).hour(12).minute(0).second(0).toDate();
-    public tardeInicio = dayjs(this.today).hour(14).minute(0).second(0).toDate();
-    public tardeFim = dayjs(this.today).hour(20).minute(0).second(0).toDate();
+
 
 
     constructor(
@@ -32,6 +29,7 @@ export class TimeServiceIplement implements TimeService {
         console.log('Configurando agendador cron...');
         this.initializeScheduler();
         console.log('Agendador configurado para  (Brasília)');
+
 
     };
 
@@ -53,7 +51,7 @@ export class TimeServiceIplement implements TimeService {
         // Mantém a instância ativa
         const keepAlive = setInterval(() => { }, 1000);
 
-        this.cronJob = cron.schedule('0 22  14 * * *', () => {
+        this.cronJob = cron.schedule('0 30 20 * * *', () => {
             console.log('⏰ Executando tarefa agendada independente');
             this.executeDailyTask()
                 .then(() => console.log('✅ Tarefa concluída'))
@@ -71,58 +69,13 @@ export class TimeServiceIplement implements TimeService {
     }
 
 
-    private getTimeRange() {
-        const today = this.getCurrentBrazilDate();
-        return {
-            inicioManha: today.hour(8).minute(0).utc(),
-            fimManha: today.hour(12).minute(0).utc(),
-            inicioTarde: today.hour(14).minute(0).utc(),
-            fimTarde: today.hour(20).minute(30).utc(),
-        };
-    }
-
-
-    private setupDailyJob(): ScheduledTask {
-
-        const job = cron.schedule('0 36 16 * * *', () => {
-            console.log('⏰ Disparando tarefa agendada');
-            this.executeDailyTask().catch(error => {
-                console.error('Erro na execução agendada:', error);
-            });
-        }, {
-            timezone: 'America/Sao_Paulo'
-        });
-
-
-      
-        return job;
-    }
-
 
     private async executeDailyTask() {
         console.log(`[${this.getCurrentBrazilDate().format()}] Iniciando rotina diária...`);
 
-        const { inicioManha, fimManha, inicioTarde, fimTarde } = this.getTimeRange();
-
-        // Logs formatados para melhor visualização
-        console.log('Período manhã:', {
-            inicio: inicioManha.format('HH:mm'),
-            fim: fimManha.format('HH:mm')
-        });
-
-        console.log('Período tarde:', {
-            inicio: inicioTarde.format('HH:mm'),
-            fim: fimTarde.format('HH:mm')
-        });
-
         try {
-            console.log('Iniciando geração de horários matutinos...');
-            await this.generateTime(inicioManha, fimManha);
-            console.log('Geração de horários matutinos concluída');
-
-            console.log('Iniciando geração de horários vespertinos...');
-            await this.generateTime(inicioTarde, fimTarde);
-            console.log('Geração de horários vespertinos concluída');
+            console.log('Iniciando geração de horários ...');
+            await this.generateTime();
 
             console.log('Iniciando limpeza do banco...');
             await this.clearDB();
@@ -137,73 +90,131 @@ export class TimeServiceIplement implements TimeService {
 
 
 
-    async generateTime(inicio: dayjs.Dayjs, final: dayjs.Dayjs): Promise<void> {
+    async generateTime(): Promise<void> {
+        try {
+            await this.clearDB();
+            // Pega apenas a data (sem hora) no timezone de São Paulo
+            const todayDate = dayjs().tz('America/Sao_Paulo').startOf('day').toDate();
+            const tomorrowDate = dayjs().tz('America/Sao_Paulo').add(1, 'day').startOf('day').toDate();
 
-        // let current = inicio.clone();
+            const timeSlots = [
+                '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00',
+                '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00',
+                '17:30', '18:00', '18:30', '19:00', '19:30', '20:00'
+            ];
 
-        // while (current.isBefore(final.add(1, 'millisecond'))) {
-            
-        //     const horarioDate = current.utc().toDate();
+            for (const timeStr of timeSlots) {
+                await this.marchTime(
+                    Time.persistence(
+                    0,
+                    true,
+                    tomorrowDate,  // Data com 00:00:00
+                    timeStr,    // Hora como string "HH:mm"
+                    "Disponível",
+                    "1111111111111111111111"
+                    )
 
-        //     console.log(`Processando: ${current.format('YYYY-MM-DD HH:mm:ss')}`);
-        //     console.log(`Será gravado como: ${horarioDate.toISOString()}`);
+                )
+                console.log(`✅ Horário ${timeStr} salvo para ${todayDate}`);
+            }
+        } catch (error) {
+            console.error('Erro ao gerar horários:', error);
+            throw error;
+        }
+    }
 
-        //     try {
-        //         const timeExist = await this.timeRepository.validationData(horarioDate, false);
+    // Método corrigido para marcar horário
+    public async marchTime(time: createTimeDto): Promise<Time> {
+        // Converte a data recebida para o fuso correto
+        const appointmentDate = dayjs(time.date).tz('America/Sao_Paulo').startOf('day').toDate();
+   
+        const timeStr = time.time; // "HH:mm"
 
-        //         if (!timeExist) {
-        //             await this.timeRepository.create(true, horarioDate, "mock-name", "xx-xxxx-xxxx");
-        //             console.log(`✅ Criado: ${current.format('HH:mm')} (UTC: ${horarioDate.toISOString()})`);
-        //         }
-        //     } catch (error) {
-        //         console.error(`❌ Erro em ${current.format('HH:mm')}:`, error);
-        //     }
+        // Verifica se não está agendando no passado
+        const now = dayjs().tz('America/Sao_Paulo');
+        const appointmentDateTime = dayjs(appointmentDate)
+            .hour(parseInt(timeStr.split(':')[0]))
+            .minute(parseInt(timeStr.split(':')[1]));
 
-        //     current = current.add(30, 'minute');
-        // }
-    };
+        if (appointmentDateTime.isBefore(now)) {
+            throw new Error("Não é possível agendar horários no passado");
+        }
 
+        // Verifica disponibilidade
+        const timeExists = await this.timeRepository.findByDate(appointmentDate, timeStr);
 
-
-
-
-
-    public async marchTime(time: createTimeDto): Promise<void> {
-
-
-        const date: Date = new Date(Date.now() - 3 * 60 * 60 * 1000);
-
-        const timeExists = await this.timeRepository.validationData(time.date, true);
-        const timeIndisponivel = await this.timeRepository.validationData(time.date, false);
-
-        if (timeIndisponivel) {
-            throw new Error("Time indisponivel");
+        if (timeExists && !timeExists.available) {
+            throw new Error("Horário indisponível");
         }
 
         if (timeExists) {
-            timeExists.available = false;
-
-            await this.timeRepository.update(Time.persistence(
+            const updatedTime = await this.timeRepository.update(Time.persistence(
                 timeExists.id,
-                time.available,
-                time.date,
+                false,
+                appointmentDate,
+                timeStr,
                 time.nameCustumer,
                 time.phoneCustumer
             ));
 
 
-
-
-
-
+            return updatedTime;
         }
-        await this.timeRepository.create(
+
+        const newTime = await this.timeRepository.create(
             false,
-            time.date,
+            appointmentDate,
+            timeStr,
             time.nameCustumer,
             time.phoneCustumer
-        )
+        );
+
+        return newTime;
     }
+
+
+    // Métodos de consulta corrigidos
+    async listTimesAvailable(): Promise<Time[] | null> {
+        const times = await this.timeRepository.findByState(true);
+        return this.convertTimesToBRT(times);
+    }
+
+    async listTimesUnavailable(): Promise<Time[] | null> {
+        const times = await this.timeRepository.findByState(false);
+        return this.convertTimesToBRT(times);
+    }
+
+    async findByDate(date: Date, time: string): Promise<Time | null> {
+        const timeFind = await this.timeRepository.findByDate(date, time);
+
+        if (timeFind) {
+            return Time.persistence(
+                timeFind.id,
+                timeFind.available,
+                timeFind.date,
+                timeFind.time,
+                timeFind.nameCustumer,
+                timeFind.phoneCustumer
+            );
+        }
+
+        return null;
+    }
+
+    // Método auxiliar para conversão
+    private convertTimesToBRT(times: Time[] | null): Time[] | null {
+        if (!times) return null;
+
+        return times.map(time => Time.persistence(
+            time.id,
+            time.available,
+            dayjs(time.date).tz('America/Sao_Paulo').toDate(),
+            time.time,
+            time.nameCustumer,
+            time.phoneCustumer
+        ));
+    }
+
 
 
     public async uncheckTime(id: number): Promise<void> {
@@ -218,23 +229,6 @@ export class TimeServiceIplement implements TimeService {
     }
 
 
-    async listTimesAvailable(): Promise<Time[] | null> {
-
-        return await this.timeRepository.findByState(true);
-
-    }
-
-
-    async listTimesUnavailable(): Promise<Time[] | null> {
-        return await this.timeRepository.findByState(false);
-    }
-
-
-    async findByDate(date: Date): Promise<Time | null> {
-
-        return await this.timeRepository.findByDate(date);
-
-    }
 
     findByState(state: boolean): Promise<Time[] | null> {
         return this.timeRepository.findByState(state);

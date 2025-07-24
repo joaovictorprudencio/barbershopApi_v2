@@ -8,21 +8,21 @@ import { DefaultArgs } from "@prisma/client/runtime/library";
 
 export class TimeRepositoryPrisma implements TimeRepository {
     static build(prisma: PrismaClient) {
-       return new TimeRepositoryPrisma(prisma);
+        return new TimeRepositoryPrisma(prisma);
     }
 
     constructor(
         private readonly prisma: PrismaClient,
     ) { }
-   async deleteForAll(date: Date): Promise<void> {
-    await this.prisma.time.deleteMany({
-        where: {
-            date: {
-                lt: date // lt = less than (menor que)
+    async deleteForAll(date: Date): Promise<void> {
+        await this.prisma.time.deleteMany({
+            where: {
+                date: {
+                    lt: date // lt = less than (menor que)
+                }
             }
-        }
-    });
-}
+        });
+    }
 
 
     async findByState(state: boolean): Promise<Time[] | null> {
@@ -40,6 +40,7 @@ export class TimeRepositoryPrisma implements TimeRepository {
             time.id,
             time.available,
             time.date,
+            time.time,
             time.nameCustumer,
             time.phoneCustumer
         ));
@@ -51,7 +52,7 @@ export class TimeRepositoryPrisma implements TimeRepository {
                 date: dateTime,
                 available: state
             }
-        }); 
+        });
 
         if (!time) {
             return null;
@@ -62,6 +63,7 @@ export class TimeRepositoryPrisma implements TimeRepository {
             time.id,
             time.available,
             time.date,
+            time.time,
             time.nameCustumer,
             time.phoneCustumer
         );
@@ -69,7 +71,7 @@ export class TimeRepositoryPrisma implements TimeRepository {
     }
 
 
-    async findByDate(date: Date): Promise<Time | null> {
+    async findByDate(date: Date, time: string): Promise<Time | null> {
 
         if (!date) {
             return null;
@@ -77,7 +79,8 @@ export class TimeRepositoryPrisma implements TimeRepository {
 
         const dataTimes = await this.prisma.time.findFirst({
             where: {
-                date: date
+                date: date,
+                time: time
             }
         });
 
@@ -92,25 +95,36 @@ export class TimeRepositoryPrisma implements TimeRepository {
             dataTimes.id,
             dataTimes.available,
             dataTimes.date,
+            dataTimes.time,
             dataTimes.nameCustumer,
             dataTimes.phoneCustumer
         )
     }
 
-    async create(available: boolean, date: Date, nameCustumer: string, phoneCustumer: string): Promise<void> {
+    async create(available: boolean, date: Date, time: string, nameCustumer: string, phoneCustumer: string): Promise<Time> {
 
         const createTime = await this.prisma.time.create({
             data: {
                 available,
                 date,
+                time,
                 nameCustumer,
                 phoneCustumer
             }
         })
+
+        return Time.persistence(
+            0,
+            createTime.available,
+            createTime.date,
+            createTime.time,
+            createTime.nameCustumer,
+            createTime.phoneCustumer
+        )
     };
 
 
-    async update(time: Time): Promise<void> {
+    async update(time: Time): Promise<Time> {
         const updateTime = await this.prisma.time.update({
             where: {
                 id: time.id,
@@ -123,6 +137,15 @@ export class TimeRepositoryPrisma implements TimeRepository {
                 phoneCustumer: time.phoneCustumer
             }
         })
+
+        return Time.persistence(
+            updateTime.id,
+            updateTime.available,
+            updateTime.date,
+            updateTime.time,
+            updateTime.nameCustumer,
+            updateTime.phoneCustumer
+        )
     };
 
     async finbyId(timeId: number): Promise<Time | null> {
@@ -139,6 +162,7 @@ export class TimeRepositoryPrisma implements TimeRepository {
             getTime.id,
             getTime.available,
             getTime.date,
+            getTime.time,
             getTime.nameCustumer,
             getTime.phoneCustumer
         )

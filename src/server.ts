@@ -5,10 +5,14 @@ import barberRoutes from './routes/barber.route';
 import { TimeServiceIplement } from "./service/time.implementation";
 import { TimeRepositoryPrisma } from "./repository/prisma/time.repository.prisma";
 import  prisma  from "./repository/prisma/lib/conection";
+import cors from 'cors';
 
 const timeRepository = new TimeRepositoryPrisma(prisma);
 
 const app = express();
+
+app.use(cors()); 
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
