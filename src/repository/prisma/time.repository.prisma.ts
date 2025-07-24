@@ -1,8 +1,7 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 import { Time } from "../../models/time";
 import { TimeRepository } from "../time.repository";
-import { UserRepository } from "../user.repository";
-import { DefaultArgs } from "@prisma/client/runtime/library";
+
 
 
 
@@ -14,6 +13,8 @@ export class TimeRepositoryPrisma implements TimeRepository {
     constructor(
         private readonly prisma: PrismaClient,
     ) { }
+
+    
     async deleteForAll(date: Date): Promise<void> {
         await this.prisma.time.deleteMany({
             where: {

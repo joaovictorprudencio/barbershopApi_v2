@@ -1,7 +1,7 @@
 
-import { Barber } from "../models/barber";
+
 import { Time } from "../models/time";
-import { User } from "../models/user";
+
 
 
 export type createTimeDto =  {

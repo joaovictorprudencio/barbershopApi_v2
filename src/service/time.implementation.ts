@@ -51,7 +51,7 @@ export class TimeServiceIplement implements TimeService {
         // Mantém a instância ativa
         const keepAlive = setInterval(() => { }, 1000);
 
-        this.cronJob = cron.schedule('0 30 20 * * *', () => {
+        this.cronJob = cron.schedule('0 55 11 * * *', () => {
             console.log('⏰ Executando tarefa agendada independente');
             this.executeDailyTask()
                 .then(() => console.log('✅ Tarefa concluída'))
@@ -73,61 +73,56 @@ export class TimeServiceIplement implements TimeService {
     private async executeDailyTask() {
         console.log(`[${this.getCurrentBrazilDate().format()}] Iniciando rotina diária...`);
 
-        try {
-            console.log('Iniciando geração de horários ...');
-            await this.generateTime();
 
-            console.log('Iniciando limpeza do banco...');
-            await this.clearDB();
-            console.log('Limpeza do banco concluída');
+        console.log('Iniciando geração de horários ...');
+        await this.generateTime();
 
-            console.log('✅ Rotina diária completa');
-        } catch (error) {
-            console.error('❌ Erro na rotina diária:', error);
-            // Adicione aqui qualquer tratamento adicional de erro
-        }
+
     }
 
 
 
     async generateTime(): Promise<void> {
-        try {
-            await this.clearDB();
-            // Pega apenas a data (sem hora) no timezone de São Paulo
-            const todayDate = dayjs().tz('America/Sao_Paulo').startOf('day').toDate();
-            const tomorrowDate = dayjs().tz('America/Sao_Paulo').add(1, 'day').startOf('day').toDate();
 
-            const timeSlots = [
-                '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00',
-                '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00',
-                '17:30', '18:00', '18:30', '19:00', '19:30', '20:00'
-            ];
+        await this.clearDB();
+        // Pega apenas a data (sem hora) no timezone de São Paulo
+        const todayDate = dayjs().tz('America/Sao_Paulo').startOf('day').toDate();
 
-            for (const timeStr of timeSlots) {
+        const timeSlots = [
+            '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00',
+            '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00',
+            '17:30', '18:00', '18:30', '19:00', '19:30', '20:00'
+        ];
+
+        for (const timeStr of timeSlots) {
+            try {
                 await this.marchTime(
                     Time.persistence(
-                    0,
-                    true,
-                    tomorrowDate,  // Data com 00:00:00
-                    timeStr,    // Hora como string "HH:mm"
-                    "Disponível",
-                    "1111111111111111111111"
-                    )
+                        0,
+                        true,
+                        todayDate,  // Data com 00:00:00
+                        timeStr,    // Hora como string "HH:mm"
+                        "Disponível",
+                        "222222222222222222"
+                    ))
 
-                )
+
                 console.log(`✅ Horário ${timeStr} salvo para ${todayDate}`);
+            } catch (error) {
+
+                console.warn(`⚠️ Horário ${timeStr} pulado: ${(error as Error).message}`);
+
             }
-        } catch (error) {
-            console.error('Erro ao gerar horários:', error);
-            throw error;
+
         }
+
     }
 
     // Método corrigido para marcar horário
     public async marchTime(time: createTimeDto): Promise<Time> {
         // Converte a data recebida para o fuso correto
         const appointmentDate = dayjs(time.date).tz('America/Sao_Paulo').startOf('day').toDate();
-   
+
         const timeStr = time.time; // "HH:mm"
 
         // Verifica se não está agendando no passado
@@ -136,9 +131,9 @@ export class TimeServiceIplement implements TimeService {
             .hour(parseInt(timeStr.split(':')[0]))
             .minute(parseInt(timeStr.split(':')[1]));
 
-        if (appointmentDateTime.isBefore(now)) {
-            throw new Error("Não é possível agendar horários no passado");
-        }
+        // if (appointmentDateTime.isBefore(now)) {
+        //     throw new Error("Não é possível agendar horários no passado");
+        // }
 
         // Verifica disponibilidade
         const timeExists = await this.timeRepository.findByDate(appointmentDate, timeStr);
@@ -162,7 +157,7 @@ export class TimeServiceIplement implements TimeService {
         }
 
         const newTime = await this.timeRepository.create(
-            false,
+            time.available,
             appointmentDate,
             timeStr,
             time.nameCustumer,
@@ -176,12 +171,12 @@ export class TimeServiceIplement implements TimeService {
     // Métodos de consulta corrigidos
     async listTimesAvailable(): Promise<Time[] | null> {
         const times = await this.timeRepository.findByState(true);
-        return this.convertTimesToBRT(times);
+        return times;
     }
 
     async listTimesUnavailable(): Promise<Time[] | null> {
         const times = await this.timeRepository.findByState(false);
-        return this.convertTimesToBRT(times);
+        return times;
     }
 
     async findByDate(date: Date, time: string): Promise<Time | null> {
@@ -201,19 +196,6 @@ export class TimeServiceIplement implements TimeService {
         return null;
     }
 
-    // Método auxiliar para conversão
-    private convertTimesToBRT(times: Time[] | null): Time[] | null {
-        if (!times) return null;
-
-        return times.map(time => Time.persistence(
-            time.id,
-            time.available,
-            dayjs(time.date).tz('America/Sao_Paulo').toDate(),
-            time.time,
-            time.nameCustumer,
-            time.phoneCustumer
-        ));
-    }
 
 
 
@@ -235,6 +217,8 @@ export class TimeServiceIplement implements TimeService {
     }
 
     private async clearDB(): Promise<void> {
-        this.timeRepository.deleteForAll(this.today.toDate());
+        const now = this.today.toDate()
+        now.setHours(0, 0, 0, 0)
+        this.timeRepository.deleteForAll(now);
     }
 }
