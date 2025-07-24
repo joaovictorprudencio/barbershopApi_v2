@@ -1,9 +1,9 @@
 import { Prisma, PrismaClient } from '@prisma/client';
 import { Barber } from '../../models/barber';
 import { BarberRepository } from '../barber.repository';
-import bcrypt from 'bcryptjs';
+
 import { barberCreateDto } from '../../service/barbeiro.service';
-import { DefaultArgs } from '@prisma/client/runtime/library';
+
 
 export class BarberRepositoryPrisma implements BarberRepository {
    

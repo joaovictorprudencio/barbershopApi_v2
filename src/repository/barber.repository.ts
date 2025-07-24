@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+
 import { Barber } from "../models/barber";
 import { barberCreateDto } from "../service/barbeiro.service";
 

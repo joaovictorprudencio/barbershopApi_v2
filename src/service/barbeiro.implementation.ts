@@ -12,8 +12,6 @@ export class barberServiceImplement implements barbeiroService {
 
     async create(barber: barberCreateDto): Promise<Barber> {
 
-
-        console.log(barber)
         const hashPassword = await bcrypt.hash(barber.password, 10)
 
         const barberWithHashedPassword = {
@@ -45,8 +43,7 @@ export class barberServiceImplement implements barbeiroService {
             return null;
         }
 
-        console.log("Senha digitada:", barberDTO.password);
-        console.log("Senha no banco (hash):", barber.password);
+
 
         const isPasswordCorrect = await bcrypt.compare(barberDTO.password, barber.password);
 
