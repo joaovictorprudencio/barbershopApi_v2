@@ -21,6 +21,7 @@ model Time {
   id Int @id @default(autoincrement())
   available Boolean  @default(false)
   date DateTime
+  time String
   nameCustumer        String
   phoneCustumer String
 }

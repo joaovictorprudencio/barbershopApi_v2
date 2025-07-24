@@ -6,6 +6,7 @@ export type TimeProps = {
     id: number;
     available: boolean;
     date: Date;
+    time:string;
     nameCustumer: string;
     phoneCustumer: string;
 }
@@ -25,10 +26,11 @@ export class Time {
             id: number,
             available: boolean,
             date: Date,
+            time:string ,
             nameCustumer: string,
             phoneCustumer: string,
         ) {
-        return new Time({ id, available, date, nameCustumer, phoneCustumer });
+        return new Time({ id, available, date, time, nameCustumer, phoneCustumer });
     }
 
 
@@ -47,6 +49,15 @@ export class Time {
 
     public get nameCustumer() {
         return this.props.nameCustumer;
+    }
+
+    public get time() {
+        return this.props.time;
+    }
+
+
+    public set time(time:string) {
+        this.props.time = time;
     }
 
 
