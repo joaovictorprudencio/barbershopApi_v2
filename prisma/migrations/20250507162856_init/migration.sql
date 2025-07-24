@@ -16,6 +16,7 @@ CREATE TABLE `Time` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `available` BOOLEAN NOT NULL DEFAULT false,
     `date` DATETIME(3) NOT NULL,
+     `time` VARCHAR(191) NOT NULL
     `nameCustumer` VARCHAR(191) NOT NULL,
     `phoneCustumer` VARCHAR(191) NOT NULL,
 
