@@ -12,7 +12,7 @@ const initializeDependencies = async () => {
   return await TimeServiceIplement.build(repository);
 };
 
-//  instância  (singleton)
+
 let timeService: TimeServiceIplement;
 
 export async function marchTime(req: Request, res: Response): Promise<Response> {
