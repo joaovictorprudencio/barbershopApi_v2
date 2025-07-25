@@ -51,7 +51,7 @@ export class TimeServiceIplement implements TimeService {
         // Mantém a instância ativa
         const keepAlive = setInterval(() => { }, 1000);
 
-        this.cronJob = cron.schedule('0 22 6 * * *', () => {
+        this.cronJob = cron.schedule('0 7 7 * * *', () => {
             console.log('⏰ Executando tarefa agendada independente');
             this.executeDailyTask()
                 .then(() => console.log('✅ Tarefa concluída'))
