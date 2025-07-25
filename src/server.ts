@@ -12,10 +12,10 @@ const timeRepository = new TimeRepositoryPrisma(prisma);
 const app = express();
 
 app.use(cors({
-  origin: 'https://barbershop-mocha.vercel.app',
+  origin: '*',                         
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  allowedHeaders: ['*'],              
+  credentials: false                 
 }));
 
 app.use(express.json());
