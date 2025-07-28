@@ -53,7 +53,7 @@ export class TimeServiceIplement implements TimeService {
         // Mantém a instância ativa
         const keepAlive = setInterval(() => { }, 1000);
 
-        this.cronJob = cron.schedule('0 10 7 * * *', () => {
+        this.cronJob = cron.schedule('0 0 15 * * *', () => {
             console.log('⏰ Executando tarefa agendada independente');
             this.executeDailyTask()
                 .then(() => console.log('✅ Tarefa concluída'))
@@ -217,6 +217,6 @@ export class TimeServiceIplement implements TimeService {
     private async clearDB(): Promise<void> {
         const now = this.today.toDate()
         now.setHours(0, 0, 0, 0)
-        this.timeRepository.deleteForAll(now);
+       await this.timeRepository.deleteForAll(now);
     }
 }
