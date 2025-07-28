@@ -33,6 +33,8 @@ export class TimeServiceIplement implements TimeService {
 
     };
 
+
+
     public static build(timeRepository: TimeRepositoryPrisma) {
         return new TimeServiceIplement(timeRepository);
     }
@@ -51,7 +53,7 @@ export class TimeServiceIplement implements TimeService {
         // Mantém a instância ativa
         const keepAlive = setInterval(() => { }, 1000);
 
-        this.cronJob = cron.schedule('0 0 10 * * *', () => {
+        this.cronJob = cron.schedule('0 10 7 * * *', () => {
             console.log('⏰ Executando tarefa agendada independente');
             this.executeDailyTask()
                 .then(() => console.log('✅ Tarefa concluída'))
@@ -59,7 +61,6 @@ export class TimeServiceIplement implements TimeService {
         }, {
             timezone: 'America/Sao_Paulo',
         });
-
 
     }
 
@@ -70,19 +71,16 @@ export class TimeServiceIplement implements TimeService {
 
 
 
-    private async executeDailyTask() {
+    public async executeDailyTask() {
         console.log(`[${this.getCurrentBrazilDate().format()}] Iniciando rotina diária...`);
-
-
         console.log('Iniciando geração de horários ...');
         await this.generateTime();
-
 
     }
 
 
 
-    async generateTime(): Promise<void> {
+   public async generateTime(): Promise<void> {
 
         await this.clearDB();
         // Pega apenas a data (sem hora) no timezone de São Paulo
