@@ -71,7 +71,20 @@ export async function uncheckTime(req: Request, res: Response): Promise<Response
   } catch (error) {
     return res.status(500).json({ error: "Erro ao desmarcar horário" });
   }
+
 }
 
 
+
+  export async function generateTimeController(req: Request, res: Response): Promise<Response> {
+    try {
+      if (!timeService) timeService = await initializeDependencies();
+      
+      await timeService.generateTime();
+
+      return res.status(200).json({ success: true });
+    } catch (error) {
+      return res.status(500).json({ error: "Erro ao gerar horários" });
+    }
+  }
 
