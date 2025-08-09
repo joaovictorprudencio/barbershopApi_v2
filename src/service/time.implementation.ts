@@ -117,54 +117,45 @@ export class TimeServiceIplement implements TimeService {
     }
 
     // Método corrigido para marcar horário
-    public async marchTime(time: createTimeDto): Promise<Time> {
-        // Converte a data recebida para o fuso correto
-        const appointmentDate = dayjs(time.date).tz('America/Sao_Paulo').startOf('day').toDate();
+  public async marchTime(time: createTimeDto): Promise<Time> {
+    const appointmentDate = dayjs(time.date).tz('America/Sao_Paulo').startOf('day').toDate();
+    const timeStr = time.time;
 
-        const timeStr = time.time; // "HH:mm"
+    // Verifica disponibilidade
+    const timeExists = await this.timeRepository.findByDate(time.date, timeStr);
 
-        // Verifica se não está agendando no passado
-        const now = dayjs().tz('America/Sao_Paulo');
-        const appointmentDateTime = dayjs(appointmentDate)
-            .hour(parseInt(timeStr.split(':')[0]))
-            .minute(parseInt(timeStr.split(':')[1]));
-
-        // if (appointmentDateTime.isBefore(now)) {
-        //     throw new Error("Não é possível agendar horários no passado");
-        // }
-
-        // Verifica disponibilidade
-        const timeExists = await this.timeRepository.findByDate(time.date, timeStr);
-
-        if (timeExists && timeExists.available === false) {
-            console.log("caiu aqui")
+    if (timeExists) {
+        if (timeExists.available === false) {
             throw new Error("Horário indisponível");
         }
-
-        if (timeExists) {
-            const updatedTime = await this.timeRepository.update(Time.persistence(
-                timeExists.id,
-                false,
-                time.date,
-                timeStr,
-                time.nameCustumer,
-                time.phoneCustumer
-            ));
-
-
-            return updatedTime;
-        }
-
-        const newTime = await this.timeRepository.create(
-            time.available,
-            appointmentDate,
+        
+        // Atualiza o horário existente
+        const updatedTime = await this.timeRepository.update(Time.persistence(
+            timeExists.id,
+            false, // Marca como indisponível
+            time.date,
             timeStr,
             time.nameCustumer,
             time.phoneCustumer
-        );
+        ));
 
-        return newTime;
+        return updatedTime;
     }
+
+    // Cria novo horário
+    const newTime = await this.timeRepository.create(
+        false, // Novo agendamento começa como indisponível
+        appointmentDate,
+        timeStr,
+        time.nameCustumer,
+        time.phoneCustumer
+    );
+
+    return newTime;
+}
+   
+            
+
 
 
     // Métodos de consulta corrigidos
