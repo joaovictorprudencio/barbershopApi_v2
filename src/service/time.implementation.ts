@@ -134,10 +134,11 @@ export class TimeServiceIplement implements TimeService {
         // }
 
         // Verifica disponibilidade
-        const timeExists = await this.timeRepository.findByDate(appointmentDate, timeStr);
+        const timeExists = await this.timeRepository.findByDate(time.date, timeStr);
 
         if (timeExists && !timeExists.available) {
             throw new Error("Horário indisponível");
+            console.log("caiu na exceção")
         }
 
         if (timeExists) {
