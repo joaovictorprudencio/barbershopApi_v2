@@ -136,9 +136,9 @@ export class TimeServiceIplement implements TimeService {
         // Verifica disponibilidade
         const timeExists = await this.timeRepository.findByDate(time.date, timeStr);
 
-        if (timeExists && !timeExists.available) {
+        if (timeExists && timeExists.available === false) {
+            console.log("caiu aqui")
             throw new Error("Horário indisponível");
-            console.log("caiu na exceção")
         }
 
         if (timeExists) {
