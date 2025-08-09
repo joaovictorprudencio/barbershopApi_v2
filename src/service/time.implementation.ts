@@ -144,7 +144,7 @@ export class TimeServiceIplement implements TimeService {
             const updatedTime = await this.timeRepository.update(Time.persistence(
                 timeExists.id,
                 false,
-                appointmentDate,
+                time.date,
                 timeStr,
                 time.nameCustumer,
                 time.phoneCustumer
