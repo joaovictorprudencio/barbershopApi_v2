@@ -80,13 +80,13 @@ export class TimeServiceIplement implements TimeService {
     public async generateTime(): Promise<void> {
 
         await this.clearDB();
-        // Pega apenas a data (sem hora) no timezone de São Paulo
+        
         const todayDate = dayjs().tz('America/Sao_Paulo').startOf('day').toDate();
 
         const timeSlots = [
-            '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00',
+            '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
             '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00',
-            '17:30', '18:00', '18:30', '19:00', '19:30', '20:00'
+            '17:30', '18:00', '18:30', '19:00', '19:30'
         ];
 
         for (const timeStr of timeSlots) {
