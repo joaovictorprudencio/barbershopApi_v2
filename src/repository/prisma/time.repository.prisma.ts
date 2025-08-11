@@ -142,8 +142,6 @@ export class TimeRepositoryPrisma implements TimeRepository {
             },
             data: {
                 available: time.available,
-                date: new Date(time.date),
-                time: time.time, 
                 nameCustumer: time.nameCustumer,
                 phoneCustumer: time.phoneCustumer
             }
