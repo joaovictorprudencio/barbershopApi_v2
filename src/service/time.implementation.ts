@@ -113,9 +113,10 @@ export class TimeServiceIplement implements TimeService {
 
     }
 
-    // Método corrigido para marcar horário
+ 
     public async marchTime(time: createTimeDto): Promise<Time> {
       
+        console.log("-------------------------------------------------------")
 
         const appointmentDate = dayjs(time.date)
             .tz('America/Sao_Paulo')
@@ -138,7 +139,7 @@ export class TimeServiceIplement implements TimeService {
             true
         );
 
-      
+      console.log("VALIDAÇÃO TIMEAVALIABLE SE EXISTIR VAI EDITAR, SE NÃO VAI CRIAR", TimeAvailable);
 
 
         if (TimeAvailable) {
@@ -160,6 +161,9 @@ export class TimeServiceIplement implements TimeService {
         }
 
 
+        console.log("CRIANDO HORARIO: ", )
+
+
       
 
         const newTime = await this.timeRepository.create(
@@ -169,6 +173,10 @@ export class TimeServiceIplement implements TimeService {
             time.nameCustumer,
             time.phoneCustumer
         );
+
+        console.log("CRIANDO HORARIO: ", newTime )
+
+             console.log("-------------------------------------------------------")
 
 
         return newTime;
