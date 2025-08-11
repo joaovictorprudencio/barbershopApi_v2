@@ -1,87 +1,47 @@
-
-
-
-
-export type TimeProps = {
-    id: number;
-    available: boolean;
-    date: Date;
-    time:string;
-    nameCustumer: string;
-    phoneCustumer: string;
-}
-
 export class Time {
+    constructor(
+        public id: number,
+        public available: boolean,
+        public date: Date,
+        public time: string,
+        public nameCustumer: string,
+        public phoneCustumer: string
+    ) {}
 
-    constructor(readonly props: TimeProps) { };
 
-
-    public static create(props: TimeProps) {
-        return new Time(props);
+    public static create(
+        id: number,
+        available: boolean,
+        date: Date,
+        time: string,
+        nameCustumer: string,
+        phoneCustumer: string
+    ): Time {
+        return new Time(id, available, date, time, nameCustumer, phoneCustumer);
     }
 
 
-    public static persistence
-        (
-            id: number,
-            available: boolean,
-            date: Date,
-            time:string ,
-            nameCustumer: string,
-            phoneCustumer: string,
-        ) {
-        return new Time({ id, available, date, time, nameCustumer, phoneCustumer });
+    public static persistence(
+        id: number,
+        available: boolean,
+        date: Date,
+        time: string,
+        nameCustumer: string,
+        phoneCustumer: string
+    ): Time {
+        return new Time(id, available, date, time, nameCustumer, phoneCustumer);
     }
 
-
-    public get id() {
-        return this.props.id;
-    }
-
-
-    public get available() {
-        return this.props.available;
-    }
-
-    public get date() {
-        return this.props.date;
-    }
-
-    public get nameCustumer() {
-        return this.props.nameCustumer;
-    }
-
-    public get time() {
-        return this.props.time;
-    }
-
-
-    public set time(time:string) {
-        this.props.time = time;
-    }
-
-
-
-    public get phoneCustumer() {
-        return this.props.phoneCustumer;
-    }
-
-    public set phoneCustumer(phone: string) {
-        this.props.phoneCustumer = phone;
-    }
-
-    public set nameCustumer(name: string) {
-        this.props.nameCustumer = name;
-    }
-
-    public set available(state: boolean) {
-        this.props.available = state;
-    }
-
-    public set date(value: Date) {
-        this.props.date = value;
-    }
-
-
+  
+    public toObject(): Record<string, any> {
+        return {
+            id: this.id,
+            available: this.available,
+            date: this.date,
+            time: this.time,
+            nameCustumer: this.nameCustumer,
+            phoneCustumer: this.phoneCustumer
+        };
+    };
 
 }

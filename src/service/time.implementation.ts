@@ -26,9 +26,6 @@ export class TimeServiceIplement implements TimeService {
     constructor(
         private readonly timeRepository: TimeRepositoryPrisma,
     ) {
-        console.log('Configurando agendador cron...');
-        this.initializeScheduler();
-        console.log('Agendador configurado para  (Brasília)');
 
 
     };
@@ -80,7 +77,7 @@ export class TimeServiceIplement implements TimeService {
 
 
 
-   public async generateTime(): Promise<void> {
+    public async generateTime(): Promise<void> {
 
         await this.clearDB();
         // Pega apenas a data (sem hora) no timezone de São Paulo
@@ -94,13 +91,13 @@ export class TimeServiceIplement implements TimeService {
 
         for (const timeStr of timeSlots) {
             try {
-                await this.marchTime(
+                await this.marchTimeForJob(
                     Time.persistence(
                         0,
                         true,
-                        todayDate,  // Data com 00:00:00
-                        timeStr,    // Hora como string "HH:mm"
-                        "Disponível",
+                        todayDate,  
+                        timeStr,    
+                        "nome modelo do job",
                         "222222222222222222"
                     ))
 
@@ -117,50 +114,100 @@ export class TimeServiceIplement implements TimeService {
     }
 
     // Método corrigido para marcar horário
-  public async marchTime(time: createTimeDto): Promise<Time> {
-    const appointmentDate = dayjs(time.date).tz('America/Sao_Paulo').startOf('day').toDate();
-    const timeStr = time.time;
+    public async marchTime(time: createTimeDto): Promise<Time> {
+        console.log('➡️ [marchTime] Iniciando função000000000000000000000000000000000000000000000');
 
-    // Verifica disponibilidade
-    const timeExists = await this.timeRepository.findByDate(time.date, timeStr);
 
-    if (timeExists) {
-        if (timeExists.available === false) {
+        const appointmentDate = dayjs(time.date)
+            .tz('America/Sao_Paulo')
+            .startOf('day')
+            .toDate();
+
+        const timeStr = time.time;
+
+        
+        const Unavailable = await this.timeRepository.validationData(time.date, time.time, false);
+        console.log("indisponivel ? ",Unavailable )
+
+        if (Unavailable) {
             throw new Error("Horário indisponível");
         }
-        
-        // Atualiza o horário existente
-        const updatedTime = await this.timeRepository.update(Time.persistence(
-            timeExists.id,
-            false, // Marca como indisponível
-            time.date,
+
+        const TimeAvailable = await this.timeRepository.validationData(
+            appointmentDate,
+            time.time,
+            true
+        );
+
+      
+
+
+        if (TimeAvailable) {
+            console.log("atualizando dado")
+            const updatedTimeData = Time.persistence(
+                TimeAvailable.id,
+                false, 
+                time.date,
+                timeStr,
+                time.nameCustumer,
+                time.phoneCustumer
+            );
+
+            console.log("ultimo logbantes de chamar o repo ")
+
+            const updatedTime = await this.timeRepository.update(updatedTimeData);
+            console.log('dado atualizado do repo  ',updatedTime);
+            return updatedTime;
+        }
+
+
+      
+
+        const newTime = await this.timeRepository.create(
+            false,
+            appointmentDate,
             timeStr,
             time.nameCustumer,
             time.phoneCustumer
-        ));
+        );
 
-        return updatedTime;
+
+        return newTime;
     }
 
-    // Cria novo horário
-    const newTime = await this.timeRepository.create(
-        false, // Novo agendamento começa como indisponível
-        appointmentDate,
-        timeStr,
-        time.nameCustumer,
-        time.phoneCustumer
-    );
 
-    return newTime;
-}
-   
-            
+    async marchTimeForJob(time: createTimeDto): Promise<Time | null> {
+
+        const appointmentDate = dayjs(time.date)
+            .tz('America/Sao_Paulo')
+            .startOf('day')
+            .toDate();
+
+        const timeStr = time.time;
+
+        const timeExists = await this.timeRepository.validationData(appointmentDate, time.time, false);
+
+        if (timeExists) {
+            return null;
+        }
+
+        return this.timeRepository.create(
+            true,
+            appointmentDate,
+            timeStr,
+            time.nameCustumer,
+            time.phoneCustumer
+        );
+    }
+
+
 
 
 
     // Métodos de consulta corrigidos
     async listTimesAvailable(): Promise<Time[] | null> {
         const times = await this.timeRepository.findByState(true);
+        console.log('times aqui: ', times)
         return times;
     }
 
@@ -209,6 +256,6 @@ export class TimeServiceIplement implements TimeService {
     private async clearDB(): Promise<void> {
         const now = this.today.toDate()
         now.setHours(0, 0, 0, 0)
-       await this.timeRepository.deleteForAll(now);
+        await this.timeRepository.deleteForAll(now);
     }
 }
