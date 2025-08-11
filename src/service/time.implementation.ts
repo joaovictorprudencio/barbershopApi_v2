@@ -115,8 +115,7 @@ export class TimeServiceIplement implements TimeService {
 
     // Método corrigido para marcar horário
     public async marchTime(time: createTimeDto): Promise<Time> {
-        console.log('➡️ [marchTime] Iniciando função000000000000000000000000000000000000000000000');
-
+      
 
         const appointmentDate = dayjs(time.date)
             .tz('America/Sao_Paulo')
