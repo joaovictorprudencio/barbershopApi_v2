@@ -259,6 +259,7 @@ export class TimeServiceIplement implements TimeService {
     public async uncheckTime(id: number): Promise<void> {
 
         const timeUpdate = await this.timeRepository.finbyId(id);
+      
 
         if (!timeUpdate) {
             throw new Error(`Registro com ID ${id} não encontrado.`);
@@ -271,6 +272,8 @@ export class TimeServiceIplement implements TimeService {
 
         if (new Date(timeUpdate.date) < now) {
             await this.timeRepository.delete(id);
+            return;
+            
         }
 
         if (timeUpdate) {
