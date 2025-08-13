@@ -80,8 +80,10 @@ export class TimeServiceIplement implements TimeService {
     public async generateTime(): Promise<void> {
 
         await this.clearDB();
-        
-        const todayDate = dayjs().tz('America/Sao_Paulo').startOf('day').toDate();
+
+        const todayDate = dayjs().startOf('day').toDate();
+        const todayLocal = new Date();
+        todayLocal.setHours(0, 0, 0, 0);
 
         const timeSlots = [
             '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
@@ -95,14 +97,14 @@ export class TimeServiceIplement implements TimeService {
                     Time.persistence(
                         0,
                         true,
-                        todayDate,  
-                        timeStr,    
+                        todayLocal,
+                        timeStr,
                         "nome modelo do job",
                         "222222222222222222"
                     ))
 
 
-                console.log(`✅ Horário ${timeStr} salvo para ${todayDate}`);
+                console.log(`✅ Horário ${timeStr} salvo para ${todayLocal}`);
             } catch (error) {
 
                 console.warn(`⚠️ Horário ${timeStr} pulado: ${(error as Error).message}`);
@@ -113,73 +115,84 @@ export class TimeServiceIplement implements TimeService {
 
     }
 
- 
+
     public async marchTime(time: createTimeDto): Promise<Time> {
-      
-        console.log("-------------------------------------------------------")
 
-        const appointmentDate = dayjs(time.date)
-            .tz('America/Sao_Paulo')
-            .startOf('day')
-            .toDate();
+        try {
 
-        const timeStr = time.time;
-
-        
-        const Unavailable = await this.timeRepository.validationData(time.date, time.time, false);
-        console.log("indisponivel ? ",Unavailable )
-
-        if (Unavailable) {
-            throw new Error("Horário indisponível");
-        }
-
-        const TimeAvailable = await this.timeRepository.validationData(
-            appointmentDate,
-            time.time,
-            true
-        );
-
-      console.log("VALIDAÇÃO TIMEAVALIABLE SE EXISTIR VAI EDITAR, SE NÃO VAI CRIAR", TimeAvailable);
+            const timeStr = time.time;
 
 
-        if (TimeAvailable) {
-            console.log("atualizando dado")
-            const updatedTimeData = Time.persistence(
-                TimeAvailable.id,
-                false, 
-                time.date,
+            const timeDate = dayjs(time.date)
+                .tz('America/Sao_Paulo')
+                .startOf('day')
+                .toDate();
+
+
+
+
+
+
+            const Unavailable = await this.timeRepository.validationData(timeDate, time.time, false);
+            console.log("o horario está indiposnivel no banco ?  ", Unavailable)
+
+            if (Unavailable) {
+                throw new Error("Horário indisponível");
+            }
+
+            const TimeAvailable = await this.timeRepository.validationData(
+                timeDate,
+                time.time,
+                true
+            );
+
+            console.log("EXISTE UM HORARIO DISPONIVEL NO BANCO ? ", TimeAvailable);
+
+
+            if (TimeAvailable) {
+                console.log("atualizando dado")
+                const updatedTimeData = Time.persistence(
+                    TimeAvailable.id,
+                    false,
+                    time.date,
+                    timeStr,
+                    time.nameCustumer,
+                    time.phoneCustumer
+                );
+
+                console.log("ultimo logbantes de chamar o repo ")
+
+                const updatedTime = await this.timeRepository.update(updatedTimeData);
+                console.log('dado atualizado do repo  ', updatedTime);
+                return updatedTime;
+            }
+
+
+            console.log("CRIANDO HORARIO: ",)
+
+
+
+
+            const newTime = await this.timeRepository.create(
+                false,
+                timeDate,
                 timeStr,
                 time.nameCustumer,
                 time.phoneCustumer
             );
 
-            console.log("ultimo logbantes de chamar o repo ")
+            console.log("CRIANDO HORARIO: ", newTime)
 
-            const updatedTime = await this.timeRepository.update(updatedTimeData);
-            console.log('dado atualizado do repo  ',updatedTime);
-            return updatedTime;
+            console.log("-------------------------------------------------------")
+
+
+            return newTime;
+
+        } catch (error) {
+
+            console.log("erro : ", error);
+            throw error;
         }
-
-
-        console.log("CRIANDO HORARIO: ", )
-
-
-      
-
-        const newTime = await this.timeRepository.create(
-            false,
-            appointmentDate,
-            timeStr,
-            time.nameCustumer,
-            time.phoneCustumer
-        );
-
-        console.log("CRIANDO HORARIO: ", newTime )
-
-             console.log("-------------------------------------------------------")
-
-
-        return newTime;
     }
 
 

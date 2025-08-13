@@ -29,7 +29,7 @@ export async function marchTime(req: Request, res: Response): Promise<Response> 
       phoneCustumer
     };
 
-    console.log(createTime)
+
 
     const timeMarch = await timeService.marchTime(createTime);
 

@@ -50,7 +50,7 @@ export class TimeRepositoryPrisma implements TimeRepository {
     async validationData(dateTime: Date, timeP: string, state: boolean): Promise<Time | null> {
 
         try {
-
+       
             const time = await this.prisma.time.findFirst({
                 where: {
                     date: new Date(dateTime),
