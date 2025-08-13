@@ -128,9 +128,9 @@ export class TimeServiceIplement implements TimeService {
                 .startOf('day')
                 .toDate();
 
-
-
-
+            if (new Date(time.date) < timeDate) {
+                 throw new Error('A data informada já passou.');
+            };
 
 
             const Unavailable = await this.timeRepository.validationData(timeDate, time.time, false);
@@ -259,6 +259,19 @@ export class TimeServiceIplement implements TimeService {
     public async uncheckTime(id: number): Promise<void> {
 
         const timeUpdate = await this.timeRepository.finbyId(id);
+
+        if (!timeUpdate) {
+            throw new Error(`Registro com ID ${id} não encontrado.`);
+        }
+
+        const now = new Date();
+
+        console.log("comparando hoje : ", now, "com: horarioa ser dermacado =>  ", timeUpdate.date)
+
+
+        if (new Date(timeUpdate.date) < now) {
+            await this.timeRepository.delete(id);
+        }
 
         if (timeUpdate) {
             timeUpdate.available = true;
