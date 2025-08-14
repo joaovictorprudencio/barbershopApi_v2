@@ -271,17 +271,6 @@ export class TimeServiceIplement implements TimeService {
             throw new Error(`Registro com ID ${id} não encontrado.`);
         }
 
-        const now = new Date();
-
-        console.log("comparando hoje : ", now, "com: horarioa ser dermacado =>  ", timeUpdate.date)
-
-
-        if (new Date(timeUpdate.date) < now) {
-            await this.timeRepository.delete(id);
-            return;
-            
-        }
-
         if (timeUpdate) {
             timeUpdate.available = true;
             await this.timeRepository.update(timeUpdate);
