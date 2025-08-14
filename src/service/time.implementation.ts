@@ -132,14 +132,14 @@ export class TimeServiceIplement implements TimeService {
                 .toDate();
 
       
-                console.log("data que ta vindo para api",timeDate )
+                console.log("data que ta vindo para api",time.date )
 
             if (new Date(time.date) < timeDate) {
                  throw new Error('A data informada já passou.');
             };
 
 
-            const Unavailable = await this.timeRepository.validationData(timeDate, time.time, false);
+            const Unavailable = await this.timeRepository.validationData(time.date, time.time, false);
             console.log("o horario está indiposnivel no banco ?  ", Unavailable)
 
             if (Unavailable) {
