@@ -83,8 +83,8 @@ export class TimeServiceIplement implements TimeService {
         await this.clearDB();
 
         const todayDate = dayjs().startOf('day').toDate();
-        const todayLocal = new Date();
-        todayLocal.setHours(0, 0, 0, 0);
+   
+        
 
         const timeSlots = [
             '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
@@ -98,14 +98,14 @@ export class TimeServiceIplement implements TimeService {
                     Time.persistence(
                         0,
                         true,
-                        todayLocal,
+                        todayDate,
                         timeStr,
                         "nome modelo do job",
                         "222222222222222222"
                     ))
 
 
-                console.log(`✅ Horário ${timeStr} salvo para ${todayLocal}`);
+                console.log(`✅ Horário ${timeStr} salvo para ${todayDate}`);
             } catch (error) {
 
                 console.warn(`⚠️ Horário ${timeStr} pulado: ${(error as Error).message}`);
