@@ -8,6 +8,7 @@ import { ScheduledTask } from 'node-cron';
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
+import { Console } from "console";
 
 
 dayjs.extend(utc);
@@ -122,11 +123,18 @@ export class TimeServiceIplement implements TimeService {
 
             const timeStr = time.time;
 
+             const todayLocal = new Date();
+        todayLocal.setHours(0, 0, 0, 0);
+
 
             const timeDate = dayjs(time.date)
-                .tz('America/Sao_Paulo')
                 .startOf('day')
                 .toDate();
+
+                const dateFormat = time.date.setHours(3);
+                console.log("data 1", dateFormat)
+                console.log("data 2 :", new Date(dateFormat))
+                console.log("data 3:",timeDate )
 
             if (new Date(time.date) < timeDate) {
                  throw new Error('A data informada já passou.');
@@ -141,7 +149,7 @@ export class TimeServiceIplement implements TimeService {
             }
 
             const TimeAvailable = await this.timeRepository.validationData(
-                timeDate,
+                time.date,
                 time.time,
                 true
             );
