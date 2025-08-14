@@ -204,7 +204,7 @@ export class TimeServiceIplement implements TimeService {
 
     async marchTimeForJob(time: createTimeDto): Promise<Time | null> {
 
-        const appointmentDate = dayjs(time.date)
+        const appointmentDate = dayjs()
             .tz('America/Sao_Paulo')
             .startOf('day')
             .toDate();
