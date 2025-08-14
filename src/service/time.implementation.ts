@@ -131,10 +131,8 @@ export class TimeServiceIplement implements TimeService {
                 .startOf('day')
                 .toDate();
 
-                const dateFormat = time.date.setHours(3,0,0,0);
-                console.log("data 1", dateFormat)
-                console.log("data 2 :", new Date(dateFormat))
-                console.log("data 3:",timeDate )
+      
+                console.log("data que ta vindo para api",timeDate )
 
             if (new Date(time.date) < timeDate) {
                  throw new Error('A data informada já passou.');
