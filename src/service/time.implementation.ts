@@ -177,12 +177,10 @@ export class TimeServiceIplement implements TimeService {
             console.log("CRIANDO HORARIO: ",)
 
 
-
-
             const newTime = await this.timeRepository.create(
                 false,
-                timeDate,
-                timeStr,
+                time.date,
+                time.time,
                 time.nameCustumer,
                 time.phoneCustumer
             );
@@ -211,9 +209,10 @@ export class TimeServiceIplement implements TimeService {
 
         const timeStr = time.time;
 
-        const timeExists = await this.timeRepository.validationData(appointmentDate, time.time, false);
+        const timeExistsunavailable = await this.timeRepository.validationData(appointmentDate, time.time, false);
+        const timeExists = await this.timeRepository.validationData(appointmentDate, time.time, true);
 
-        if (timeExists) {
+        if (timeExistsunavailable || timeExists ) {
             return null;
         }
 
