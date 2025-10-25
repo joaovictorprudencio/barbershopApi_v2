@@ -10,14 +10,12 @@ describe('TimeService', () => {
   let timeRepository: jest.Mocked<TimeRepositoryPrisma>;
 
   beforeEach(() => {
-    // Mock do repositório com todos métodos que o service usa
     timeRepository = {
       findByDate: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
     } as unknown as jest.Mocked<TimeRepositoryPrisma>;
 
-    // Aqui uso o build com o repositório mockado
     timeService = TimeServiceIplement.build(timeRepository);
   });
 
