@@ -6,6 +6,7 @@
     "dayjs": "^1.11.13",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.19.2",
     "node-cron": "^4.2.0",
     "timezone": "^1.0.23",
     "utc": "^0.1.0"
@@ -19,18 +20,23 @@
     "test:coverage": "jest --coverage"
   },
   "devDependencies": {
+    "@types/babel__core": "^7.20.5",
+    "@types/babel__generator": "^7.27.0",
+    "@types/babel__template": "^7.4.4",
     "@types/bcryptjs": "^3.0.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.1",
     "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.9",
-    "@types/node": "^22.15.8",
+    "@types/mongoose": "^5.11.96",
+    "@types/node": "^22.18.12",
     "@types/supertest": "^6.0.3",
-    "jest": "^30.0.5",
+    "jest": "^30.2.0",
     "nodemon": "^3.1.10",
+    "prettier": "^3.6.2",
     "prisma": "^6.7.0",
     "supertest": "^7.1.4",
-    "ts-jest": "^29.4.1",
+    "ts-jest": "^29.4.5",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"
   }
