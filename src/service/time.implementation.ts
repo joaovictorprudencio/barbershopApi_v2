@@ -1,14 +1,11 @@
 import { TimeService } from "./time.service";
-import { Time } from "../models/time";
-import { Barber } from "../models/barber";
-import { TimeRepositoryPrisma } from "../repository/prisma/time.repository.prisma";
+import { Time } from "../entities/time";
+import { TimeRepositoryMongo } from "../repository/mongodb/time.repository.mongodb";
 import { createTimeDto } from "./time.service";
-import cron from 'node-cron';
-import { ScheduledTask } from 'node-cron';
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
-import { Console } from "console";
+
 
 
 dayjs.extend(utc);
@@ -16,7 +13,7 @@ dayjs.extend(timezone);
 
 export class TimeServiceIplement implements TimeService {
 
-    private cronJob!: ScheduledTask;
+
     private static instance: TimeServiceIplement;
 
     public todayTimes: Time[] = [];
@@ -25,7 +22,7 @@ export class TimeServiceIplement implements TimeService {
 
 
     constructor(
-        private readonly timeRepository: TimeRepositoryPrisma,
+        private readonly timeRepository: TimeRepositoryMongo,
     ) {
 
 
@@ -33,34 +30,19 @@ export class TimeServiceIplement implements TimeService {
 
 
 
-    public static build(timeRepository: TimeRepositoryPrisma) {
+    public static build(timeRepository: TimeRepositoryMongo) {
         return new TimeServiceIplement(timeRepository);
     }
 
 
-    public static getInstance(timeRepository: TimeRepositoryPrisma): TimeServiceIplement {
+    public static getInstance(timeRepository: TimeRepositoryMongo): TimeServiceIplement {
         if (!TimeServiceIplement.instance) {
             TimeServiceIplement.instance = new TimeServiceIplement(timeRepository);
         }
         return TimeServiceIplement.instance;
     }
 
-    private initializeScheduler() {
-        console.log('⚙️ Inicializando agendador independente...');
 
-        // Mantém a instância ativa
-        const keepAlive = setInterval(() => { }, 1000);
-
-        this.cronJob = cron.schedule('0 30 2 * * *', () => {
-            console.log('⏰ Executando tarefa agendada independente');
-            this.executeDailyTask()
-                .then(() => console.log('✅ Tarefa concluída'))
-                .catch(err => console.error('❌ Erro:', err));
-        }, {
-            timezone: 'America/Sao_Paulo',
-        });
-
-    }
 
 
     private getCurrentBrazilDate() {
@@ -96,7 +78,7 @@ export class TimeServiceIplement implements TimeService {
             try {
                 await this.marchTimeForJob(
                     Time.persistence(
-                        0,
+                        '',
                         true,
                         todayDate,
                         timeStr,
@@ -117,15 +99,13 @@ export class TimeServiceIplement implements TimeService {
     }
 
 
-    public async marchTime(time: createTimeDto): Promise<Time> {
+    public async marchTime(time: createTimeDto): Promise<Time | undefined> {
 
         try {
 
             const timeStr = time.time;
 
-             const todayLocal = new Date();
-        todayLocal.setHours(0, 0, 0, 0);
-
+        
 
             const timeDate = dayjs(time.date)
                 .startOf('day')
@@ -142,17 +122,39 @@ export class TimeServiceIplement implements TimeService {
             const Unavailable = await this.timeRepository.validationData(time.date, time.time, false);
             console.log("o horario está indiposnivel no banco ?  ", Unavailable)
 
-            if (Unavailable) {
-                throw new Error("Horário indisponível");
-            }
+              if (Unavailable !== null && Unavailable !== undefined) {
+              throw new Error("Horário indisponível");
+             }
 
             const TimeAvailable = await this.timeRepository.validationData(
                 time.date,
                 time.time,
-                true
+                true 
             );
 
-            console.log("EXISTE UM HORARIO DISPONIVEL NO BANCO ? ", TimeAvailable);
+    
+
+            if(TimeAvailable==null) {
+
+             console.log("CRIANDO HORARIO: ",)
+
+
+            const newTime = await this.timeRepository.create(
+                false,
+                time.date,
+                time.time,
+                time.nameCustumer,
+                time.phoneCustumer
+            );
+
+
+               return newTime;
+            }
+
+             if (TimeAvailable.id == null) {
+                throw new Error("Horário disponível não possui ID válido");
+             }
+
 
 
             if (TimeAvailable) {
@@ -169,28 +171,15 @@ export class TimeServiceIplement implements TimeService {
                 console.log("ultimo logbantes de chamar o repo ")
 
                 const updatedTime = await this.timeRepository.update(updatedTimeData);
+
+                if(!updatedTime){
+                    throw new Error(`não encontrado`)
+                }
+
                 console.log('dado atualizado do repo  ', updatedTime);
-                return updatedTime;
+                return updatedTime; 
             }
 
-
-            console.log("CRIANDO HORARIO: ",)
-
-
-            const newTime = await this.timeRepository.create(
-                false,
-                time.date,
-                time.time,
-                time.nameCustumer,
-                time.phoneCustumer
-            );
-
-            console.log("CRIANDO HORARIO: ", newTime)
-
-            console.log("-------------------------------------------------------")
-
-
-            return newTime;
 
         } catch (error) {
 
@@ -229,7 +218,7 @@ export class TimeServiceIplement implements TimeService {
 
 
 
-    // Métodos de consulta corrigidos
+    
     async listTimesAvailable(): Promise<Time[] | null> {
         const times = await this.timeRepository.findByState(true);
         console.log('times aqui: ', times)
@@ -261,7 +250,7 @@ export class TimeServiceIplement implements TimeService {
 
 
 
-    public async uncheckTime(id: number): Promise<void> {
+    public async uncheckTime(id: string): Promise<void> {
 
         const timeUpdate = await this.timeRepository.finbyId(id);
       
