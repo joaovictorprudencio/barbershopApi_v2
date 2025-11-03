@@ -1,4 +1,4 @@
-import { Barber } from "../models/barber";
+import { Barber } from "../entities/barber";
 import jwt from 'jsonwebtoken';
 
 export type barberLoginDto = {
@@ -15,7 +15,7 @@ export type barberCreateDto = {
 }
 
 export type barberResDto = {
-  id: number,
+  id: string,
   name: string,
   email: string,
   token: string
