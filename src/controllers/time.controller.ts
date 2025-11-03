@@ -1,14 +1,14 @@
 import { time } from "console";
-import prisma from "../repository/prisma/lib/conection";
-import { TimeRepositoryPrisma } from "../repository/prisma/time.repository.prisma";
+
 import { TimeServiceIplement } from "../service/time.implementation";
 import { createTimeDto } from "../service/time.service";
 import { Request, Response, NextFunction } from 'express';
+import { TimeRepositoryMongo } from "../repository/mongodb/time.repository.mongodb";
 
 
-// Inicializa as dependências uma única vez
+
 const initializeDependencies = async () => {
-  const repository = await TimeRepositoryPrisma.build(prisma);
+  const repository = await new TimeRepositoryMongo();
   return await TimeServiceIplement.build(repository);
 };
 
@@ -66,7 +66,7 @@ export async function uncheckTime(req: Request, res: Response): Promise<Response
     if (!timeService) timeService = await initializeDependencies();
     
     const { id } = req.params;
-    await timeService.uncheckTime(Number(id));
+    await timeService.uncheckTime(String(id));
     return res.status(200).json({ success: true });
   } catch (error) {
     return res.status(500).json({ error: "Erro ao desmarcar horário" });

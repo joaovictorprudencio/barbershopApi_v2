@@ -1,18 +1,17 @@
-import { barberServiceImplement } from "../service/barbeiro.implementation";
+import { BarberServiceImplement } from "../service/barbeiro.implementation";
 import { barberCreateDto, barberLoginDto, barberResDto } from "../service/barbeiro.service";
-import { Barber } from "../models/barber";
-import prisma from "../repository/prisma/lib/conection";
-import { BarberRepositoryPrisma } from "../repository/prisma/barber.repository.prisma";
+import { Barber } from "../entities/barber";
+import { TimeRepositoryMongo } from "../repository/mongodb/barber.repository.mongodb";
 import { Request, Response, NextFunction } from 'express';
 
 
 // Inicializa as dependências   
 const initializeDependencies = async () => {
-  const repository = BarberRepositoryPrisma.build(prisma);
-  return await barberServiceImplement.build(repository);
+  const repository = new TimeRepositoryMongo();
+  return await BarberServiceImplement.build(repository);
 };
 
-let barberService: barberServiceImplement;
+let barberService: BarberServiceImplement;
 
 export async function login(req: Request, res: Response, next: NextFunction) {
   try {
