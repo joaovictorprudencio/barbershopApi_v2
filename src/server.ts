@@ -2,14 +2,17 @@
 import express from "express";
 import router from './routes/time.route';
 import barberRoutes from './routes/barber.route';
-import { TimeServiceIplement } from "./service/time.implementation";
-import { TimeRepositoryPrisma } from "./repository/prisma/time.repository.prisma";
-import  prisma  from "./repository/prisma/lib/conection";
 import cors from 'cors';
+import { mongooseDB } from "./repository/mongodb/lib/conection";
+import dotenv from 'dotenv';
 
-const timeRepository = new TimeRepositoryPrisma(prisma);
 
+
+dotenv.config();
 const app = express();
+mongooseDB();
+
+
 
 app.use(cors({
   origin: '*',                         
@@ -35,14 +38,9 @@ app.use(express.urlencoded({ extended: true }));
 });
 
 
-const timeService = TimeServiceIplement.getInstance(timeRepository);
-
-
-
-setInterval(() => {
+setInterval(()  =>  {
     console.log('🔄 Mantendo servidor ativo', new Date().toISOString());
 }, 300000);
-
 
 
 
