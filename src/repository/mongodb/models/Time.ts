@@ -16,4 +16,6 @@ const TimeSchema = new Schema<ITime>({
   phoneCustumer: { type: String, required: true },
 });
 
+TimeSchema.index({ date: 1, time: 1 }, { unique: true });
+
 export const TimeModel = mongoose.model<ITime>("Time", TimeSchema);
