@@ -1,5 +1,5 @@
 
-import { Barber } from "../models/barber";
+import { Barber } from "../entities/barber";
 import { barberCreateDto } from "../service/barbeiro.service";
 
 export interface BarberRepository {

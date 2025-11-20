@@ -1,5 +1,5 @@
 export type BarberProps = {
-    id: number;
+    id: string;
     name: string;
     email: string;
     password: string;
@@ -18,7 +18,7 @@ export class Barber {
     
      public static persistence
      (
-        id: number,
+        id: string,
         name: string,
         email: string,
         password: string,

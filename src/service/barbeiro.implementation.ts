@@ -1,10 +1,10 @@
-import { Barber } from "../models/barber";
+import { Barber } from "../entities/barber";
 import { BarberRepository } from "../repository/barber.repository";
 import { barbeiroService, barberCreateDto, barberLoginDto, barberResDto } from "./barbeiro.service";
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-export class barberServiceImplement implements barbeiroService {
+export class BarberServiceImplement implements barbeiroService {
 
     constructor(private readonly barberRepository: BarberRepository) { };
 
@@ -24,8 +24,8 @@ export class barberServiceImplement implements barbeiroService {
 
         return Barber.persistence(
             barberNew.id,
-            barberNew.email,
             barberNew.name,
+            barberNew.email,
             barberNew.password,
             barberNew.numberPhone,
         );
@@ -63,7 +63,7 @@ export class barberServiceImplement implements barbeiroService {
     }
 
     public static async build(barberRepository: BarberRepository) {
-        return new barberServiceImplement(barberRepository);
+        return new BarberServiceImplement(barberRepository);
     }
 
 }

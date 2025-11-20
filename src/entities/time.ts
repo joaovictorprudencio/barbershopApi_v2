@@ -1,6 +1,6 @@
 export class Time {
     constructor(
-        public id: number,
+        public id: string,
         public available: boolean,
         public date: Date,
         public time: string,
@@ -10,7 +10,7 @@ export class Time {
 
 
     public static create(
-        id: number,
+        id: string,
         available: boolean,
         date: Date,
         time: string,
@@ -22,7 +22,7 @@ export class Time {
 
 
     public static persistence(
-        id: number,
+        id: string,
         available: boolean,
         date: Date,
         time: string,
