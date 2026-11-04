@@ -10,7 +10,7 @@ export interface ITime extends Document {
 
 const TimeSchema = new Schema<ITime>({
   available: { type: Boolean, required: true },
-  date: { type: Date, required: true, unique: true },
+  date: { type: Date, required: true},
   time: { type: String, required: true },
   nameCustumer: { type: String, required: true },
   phoneCustumer: { type: String, required: true },

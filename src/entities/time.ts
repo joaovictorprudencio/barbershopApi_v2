@@ -1,3 +1,10 @@
+import dayjs from 'dayjs';
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 export class Time {
     constructor(
         public id: string,
@@ -37,7 +44,7 @@ export class Time {
         return {
             id: this.id,
             available: this.available,
-            date: this.date,
+            date: dayjs(this.date).tz('America/Sao_Paulo').format('YYYY-MM-DD'),
             time: this.time,
             nameCustumer: this.nameCustumer,
             phoneCustumer: this.phoneCustumer

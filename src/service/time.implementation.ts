@@ -64,7 +64,7 @@ export class TimeServiceIplement implements TimeService {
 
         await this.clearDB();
 
-        const todayDate = dayjs().startOf('day').toDate();
+        const todayDate = dayjs().tz('America/Sao_Paulo').startOf('day').toDate();
    
         
 
@@ -107,19 +107,19 @@ export class TimeServiceIplement implements TimeService {
 
         
 
-            const timeDate = dayjs(time.date)
+            const timeDate = dayjs.tz(time.date, 'America/Sao_Paulo')
                 .startOf('day')
                 .toDate();
 
       
                 console.log("data que ta vindo para api",time.date )
 
-            if (new Date(time.date) < timeDate) {
+            if (dayjs.tz(time.date, 'America/Sao_Paulo').isBefore(dayjs().tz('America/Sao_Paulo').startOf('day'))) {
                  throw new Error('A data informada já passou.');
             };
 
 
-            const Unavailable = await this.timeRepository.validationData(time.date, time.time, false);
+            const Unavailable = await this.timeRepository.validationData(timeDate, timeStr, false);
             console.log("o horario está indiposnivel no banco ?  ", Unavailable)
 
               if (Unavailable !== null && Unavailable !== undefined) {
@@ -127,8 +127,8 @@ export class TimeServiceIplement implements TimeService {
              }
 
             const TimeAvailable = await this.timeRepository.validationData(
-                time.date,
-                time.time,
+                timeDate,
+                timeStr,
                 true 
             );
 
@@ -141,8 +141,8 @@ export class TimeServiceIplement implements TimeService {
 
             const newTime = await this.timeRepository.create(
                 false,
-                time.date,
-                time.time,
+                timeDate,
+                timeStr,
                 time.nameCustumer,
                 time.phoneCustumer
             );
@@ -162,7 +162,7 @@ export class TimeServiceIplement implements TimeService {
                 const updatedTimeData = Time.persistence(
                     TimeAvailable.id,
                     false,
-                    time.date,
+                    timeDate,
                     timeStr,
                     time.nameCustumer,
                     time.phoneCustumer
@@ -273,8 +273,7 @@ export class TimeServiceIplement implements TimeService {
     }
 
     private async clearDB(): Promise<void> {
-        const now = this.today.toDate()
-        now.setHours(0, 0, 0, 0)
+        const now = dayjs().tz('America/Sao_Paulo').startOf('day').toDate();
         await this.timeRepository.deleteForAll(now);
     }
 }
