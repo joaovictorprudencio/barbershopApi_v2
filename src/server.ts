@@ -2,6 +2,7 @@
 import express from "express";
 import router from './routes/time.route';
 import barberRoutes from './routes/barber.route';
+import revenueRoutes from './routes/revenue.route';
 import cors from 'cors';
 import { mongooseDB } from "./repository/mongodb/lib/conection";
 import dotenv from 'dotenv';
@@ -24,8 +25,9 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
- app.use('/api', router)
+ app.use('/api', router) 
  app.use('/api', barberRoutes)
+ app.use('/api', revenueRoutes)
 
  app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK' });

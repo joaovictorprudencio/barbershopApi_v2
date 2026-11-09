@@ -28,18 +28,20 @@ export class TimeRepositoryMongo implements TimeRepository {
           timeExist.available,
           timeExist.date,
           timeExist.time,
+          timeExist.price ?? 0,
           timeExist.nameCustumer,
           timeExist.phoneCustumer
         );
         
     }
 
-    async create(available: boolean, date: Date, time: string, nameCustumer: string, phoneCustumer: string): Promise<Time> {
+    async create(available: boolean, date: Date, time: string, price: number, nameCustumer: string, phoneCustumer: string): Promise<Time> {
         
         const timeCreated = await TimeModel.create({
            available,
             date,
             time,
+            price,
             nameCustumer,
             phoneCustumer
         })
@@ -49,21 +51,21 @@ export class TimeRepositoryMongo implements TimeRepository {
         timeCreated.available,
         timeCreated.date,
         timeCreated.time,
+        price,
         timeCreated.nameCustumer,
         timeCreated.phoneCustumer
         )
     }
 
-
     async update(time: Time): Promise<Time | null> {
 
-        
         
         const updatedTime = await TimeModel.findByIdAndUpdate(
             time.id,
             {
                 $set: { 
                         available:time.available,
+                        price: time.price ?? 0,
                         nameCustumer:time.nameCustumer,
                         phoneCustumer: time.phoneCustumer
                       }
@@ -80,12 +82,13 @@ export class TimeRepositoryMongo implements TimeRepository {
             updatedTime.available,
             updatedTime.date,
             updatedTime.time,
+            updatedTime.price ?? 0,
             updatedTime.nameCustumer,
             updatedTime.phoneCustumer
 
         )
-
     }
+
 
     async finbyId(timeId: number | string): Promise<Time | null>  {
     try {
@@ -105,6 +108,7 @@ export class TimeRepositoryMongo implements TimeRepository {
             findTime.available,
             findTime.date,
             findTime.time,
+            findTime.price ?? 0,
             findTime.nameCustumer,
             findTime.phoneCustumer
         );
@@ -128,6 +132,7 @@ export class TimeRepositoryMongo implements TimeRepository {
                 time.available,
                 time.date,
                 time.time,
+                time.price ?? 0,
                 time.nameCustumer,
                 time.phoneCustumer
             ));
@@ -151,6 +156,7 @@ export class TimeRepositoryMongo implements TimeRepository {
            timeForDate.available,
            timeForDate.date,
            timeForDate.time,
+           timeForDate.price ?? 0,
            timeForDate.nameCustumer,
            timeForDate.phoneCustumer
        );

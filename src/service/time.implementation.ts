@@ -1,6 +1,7 @@
 import { TimeService } from "./time.service";
 import { Time } from "../entities/time";
 import { TimeRepositoryMongo } from "../repository/mongodb/time.repository.mongodb";
+import { RevenueRepositoryMongo } from "../repository/mongodb/revenue.repository.mongodb";
 import { createTimeDto } from "./time.service";
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
@@ -23,6 +24,7 @@ export class TimeServiceIplement implements TimeService {
 
     constructor(
         private readonly timeRepository: TimeRepositoryMongo,
+        private readonly revenueRepository: RevenueRepositoryMongo,
     ) {
 
 
@@ -30,14 +32,14 @@ export class TimeServiceIplement implements TimeService {
 
 
 
-    public static build(timeRepository: TimeRepositoryMongo) {
-        return new TimeServiceIplement(timeRepository);
+    public static build(timeRepository: TimeRepositoryMongo, revenueRepository: RevenueRepositoryMongo) {
+        return new TimeServiceIplement(timeRepository, revenueRepository);
     }
 
 
-    public static getInstance(timeRepository: TimeRepositoryMongo): TimeServiceIplement {
+    public static getInstance(timeRepository: TimeRepositoryMongo, revenueRepository: RevenueRepositoryMongo): TimeServiceIplement {
         if (!TimeServiceIplement.instance) {
-            TimeServiceIplement.instance = new TimeServiceIplement(timeRepository);
+            TimeServiceIplement.instance = new TimeServiceIplement(timeRepository, revenueRepository);
         }
         return TimeServiceIplement.instance;
     }
@@ -62,6 +64,7 @@ export class TimeServiceIplement implements TimeService {
 
     public async generateTime(): Promise<void> {
 
+        await this.updateRevenueBeforeClear();
         await this.clearDB();
 
         const todayDate = dayjs().tz('America/Sao_Paulo').startOf('day').toDate();
@@ -82,6 +85,7 @@ export class TimeServiceIplement implements TimeService {
                         true,
                         todayDate,
                         timeStr,
+                        0,
                         "nome modelo do job",
                         "222222222222222222"
                     ))
@@ -98,6 +102,39 @@ export class TimeServiceIplement implements TimeService {
 
     }
 
+    private async updateRevenueBeforeClear(): Promise<void> {
+        try {
+            const unavailableTimes = await this.timeRepository.findByState(false);
+
+            if (!unavailableTimes || unavailableTimes.length === 0) {
+                return;
+            }
+
+            const grouped = new Map<string, { month: number; year: number; priceTotal: number; quantity: number }>();
+
+            for (const time of unavailableTimes) {
+                const date = dayjs(time.date);
+                const key = `${date.year()}-${date.month() + 1}`;
+
+                const group = grouped.get(key) ?? { month: date.month() + 1, year: date.year(), priceTotal: 0, quantity: 0 };
+                group.priceTotal += time.price ?? 0;
+                group.quantity += 1;
+                grouped.set(key, group);
+            }
+
+            for (const group of grouped.values()) {
+                await this.revenueRepository.incrementMonthRevenue(
+                    group.month,
+                    group.year,
+                    group.priceTotal,
+                    group.quantity
+                );
+                console.log(`💰 Revenue ${group.month}/${group.year} atualizada: +${group.priceTotal} (+${group.quantity} serviços)`);
+            }
+        } catch (error) {
+            console.warn('⚠️ Falha ao atualizar revenue antes da limpeza:', (error as Error).message);
+        }
+    }
 
     public async marchTime(time: createTimeDto): Promise<Time | undefined> {
 
@@ -122,9 +159,9 @@ export class TimeServiceIplement implements TimeService {
             const Unavailable = await this.timeRepository.validationData(timeDate, timeStr, false);
             console.log("o horario está indiposnivel no banco ?  ", Unavailable)
 
-              if (Unavailable !== null && Unavailable !== undefined) {
+            if (Unavailable !== null && Unavailable !== undefined) {
               throw new Error("Horário indisponível");
-             }
+            }
 
             const TimeAvailable = await this.timeRepository.validationData(
                 timeDate,
@@ -143,10 +180,12 @@ export class TimeServiceIplement implements TimeService {
                 false,
                 timeDate,
                 timeStr,
+                time.price ?? 0,
                 time.nameCustumer,
                 time.phoneCustumer
             );
 
+                await this.ensureRevenueForDate(timeDate);
 
                return newTime;
             }
@@ -164,6 +203,7 @@ export class TimeServiceIplement implements TimeService {
                     false,
                     timeDate,
                     timeStr,
+                    time.price ?? 0,
                     time.nameCustumer,
                     time.phoneCustumer
                 );
@@ -176,10 +216,11 @@ export class TimeServiceIplement implements TimeService {
                     throw new Error(`não encontrado`)
                 }
 
-                console.log('dado atualizado do repo  ', updatedTime);
-                return updatedTime; 
-            }
+                await this.ensureRevenueForDate(timeDate);
 
+                console.log('dado atualizado do repo  ', updatedTime);
+                return updatedTime;
+            }
 
         } catch (error) {
 
@@ -187,6 +228,16 @@ export class TimeServiceIplement implements TimeService {
             throw error;
         }
     }
+
+    private async ensureRevenueForDate(date: Date): Promise<void> {
+        try {
+            const d = dayjs(date);
+            await this.revenueRepository.ensureMonthExists(d.month() + 1, d.year());
+        } catch (error) {
+            console.warn('⚠️ Falha ao garantir revenue do mês:', (error as Error).message);
+        }
+    }
+
 
 
     async marchTimeForJob(time: createTimeDto): Promise<Time | null> {
@@ -209,6 +260,7 @@ export class TimeServiceIplement implements TimeService {
             true,
             appointmentDate,
             timeStr,
+            0, 
             time.nameCustumer,
             time.phoneCustumer
         );
@@ -239,6 +291,7 @@ export class TimeServiceIplement implements TimeService {
                 timeFind.available,
                 timeFind.date,
                 timeFind.time,
+                timeFind.price,
                 timeFind.nameCustumer,
                 timeFind.phoneCustumer
             );

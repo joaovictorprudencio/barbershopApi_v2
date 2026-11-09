@@ -4,14 +4,16 @@ export interface ITime extends Document {
   available: boolean;
   date: Date;
   time: string;
+  price: number;
   nameCustumer: string;
   phoneCustumer: string;
 }
 
 const TimeSchema = new Schema<ITime>({
   available: { type: Boolean, required: true },
-  date: { type: Date, required: true},
+  date: { type: Date, required: true },
   time: { type: String, required: true },
+  price: { type: Number, default: 0 },
   nameCustumer: { type: String, required: true },
   phoneCustumer: { type: String, required: true },
 });

@@ -4,12 +4,14 @@ import { TimeServiceIplement } from "../service/time.implementation";
 import { createTimeDto } from "../service/time.service";
 import { Request, Response, NextFunction } from 'express';
 import { TimeRepositoryMongo } from "../repository/mongodb/time.repository.mongodb";
+import { RevenueRepositoryMongo } from "../repository/mongodb/revenue.repository.mongodb";
 
 
 
 const initializeDependencies = async () => {
   const repository = await new TimeRepositoryMongo();
-  return await TimeServiceIplement.build(repository);
+  const revenueRepository = await new RevenueRepositoryMongo();
+  return await TimeServiceIplement.build(repository, revenueRepository);
 };
 
 
@@ -19,14 +21,15 @@ export async function marchTime(req: Request, res: Response): Promise<Response> 
   try {
     if (!timeService) timeService = await initializeDependencies();
     
-    const {  available, date, time, nameCustumer, phoneCustumer } = req.body;
+    const { available, date, time, nameCustumer, phoneCustumer, price } = req.body;
     
     const createTime: createTimeDto = {
       available,
       date,
       time,
       nameCustumer,
-      phoneCustumer
+      phoneCustumer,
+      price: Number(price) || 0
     };
 
 

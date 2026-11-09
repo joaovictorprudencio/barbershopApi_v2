@@ -10,6 +10,7 @@ export type createTimeDto =  {
     time:string,
      nameCustumer: string;
     phoneCustumer: string;
+    price?: number;
 }
 
 
