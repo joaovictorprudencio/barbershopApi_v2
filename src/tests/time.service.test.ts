@@ -19,6 +19,9 @@ const mockRepository = {
   finbyId: jest.fn<any>(),
   update: jest.fn<any>(),
   deleteForAll: jest.fn<any>(),
+  findUncountedUnavailable: jest.fn<any>(),
+  markAsCounted: jest.fn<any>(),
+  existsByDateAndState: jest.fn<any>(),
 };
 
 const mockRevenueRepository = {
@@ -44,6 +47,9 @@ describe('TimeService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRepository.findByDate.mockResolvedValue(null);
+    mockRepository.existsByDateAndState.mockResolvedValue(false);
+    mockRepository.findUncountedUnavailable.mockResolvedValue([]);
+    mockRepository.markAsCounted.mockResolvedValue(undefined);
     mockRevenueRepository.ensureMonthExists.mockResolvedValue({ id: 'r1' });
     mockRevenueRepository.incrementMonthRevenue.mockResolvedValue({ id: 'r1' });
     mockRevenueRepository.findByMonthYear.mockResolvedValue(null);
@@ -76,7 +82,7 @@ describe('TimeService', () => {
         Time.persistence('1', false, yesterdaySP.toDate(), '09:00', 35, 'João', '11988887777'),
         Time.persistence('2', false, yesterdaySP.toDate(), '10:00', 50, 'Maria', '11977776666'),
       ];
-      mockRepository.findByState.mockResolvedValue(occupiedTimes);
+      mockRepository.findUncountedUnavailable.mockResolvedValue(occupiedTimes);
       mockRepository.deleteForAll.mockResolvedValue(undefined);
       mockRepository.validationData.mockResolvedValue(null);
       mockRepository.create.mockImplementation(async (available: boolean, date: Date, time: string, price: number, nameCustumer: string, phoneCustumer: string) => {
@@ -91,11 +97,12 @@ describe('TimeService', () => {
         85,
         2
       );
+      expect(mockRepository.markAsCounted).toHaveBeenCalledWith(['1', '2']);
       expect(mockRepository.deleteForAll).toHaveBeenCalled();
     });
 
     it('não deve chamar incrementMonthRevenue se não houver horários ocupados', async () => {
-      mockRepository.findByState.mockResolvedValue([]);
+      mockRepository.findUncountedUnavailable.mockResolvedValue([]);
       mockRepository.deleteForAll.mockResolvedValue(undefined);
       mockRepository.validationData.mockResolvedValue(null);
       mockRepository.create.mockResolvedValue(Time.persistence('1', true, baseDate, '09:00', 0, '', ''));
@@ -103,6 +110,35 @@ describe('TimeService', () => {
       await service.generateTime();
 
       expect(mockRevenueRepository.incrementMonthRevenue).not.toHaveBeenCalled();
+      expect(mockRepository.deleteForAll).toHaveBeenCalled();
+    });
+
+    it('deve ser idempotente: rodar 2x não incrementa a revenue duas vezes', async () => {
+      const yesterdaySP = dayjs().tz('America/Sao_Paulo').subtract(1, 'day').startOf('day');
+      const occupiedTimes = [
+        Time.persistence('1', false, yesterdaySP.toDate(), '09:00', 35, 'João', '11988887777'),
+      ];
+      mockRepository.findUncountedUnavailable.mockResolvedValueOnce(occupiedTimes).mockResolvedValueOnce([]);
+      mockRepository.deleteForAll.mockResolvedValue(undefined);
+      mockRepository.validationData.mockResolvedValue(null);
+      mockRepository.create.mockResolvedValue(Time.persistence('1', true, baseDate, '09:00', 0, '', ''));
+
+      await service.generateTime();
+      await service.generateTime();
+
+      expect(mockRevenueRepository.incrementMonthRevenue).toHaveBeenCalledTimes(1);
+      expect(mockRepository.markAsCounted).toHaveBeenCalledTimes(1);
+    });
+
+    it('não deve gerar horários se a rotina de hoje já foi gerada', async () => {
+      mockRepository.deleteForAll.mockResolvedValue(undefined);
+      mockRepository.existsByDateAndState.mockResolvedValue(true);
+      mockRepository.validationData.mockResolvedValue(null);
+
+      await service.generateTime();
+
+      expect(mockRepository.existsByDateAndState).toHaveBeenCalled();
+      expect(mockRepository.create).not.toHaveBeenCalled();
       expect(mockRepository.deleteForAll).toHaveBeenCalled();
     });
   });
@@ -273,6 +309,36 @@ describe('TimeService', () => {
       mockRepository.finbyId.mockResolvedValue(null);
 
       await expect(service.uncheckTime('999')).rejects.toThrow('Registro com ID 999 não encontrado.');
+    });
+
+    it('deve estornar a revenue se o horário desmarcado já foi contabilizado', async () => {
+      const time = Time.persistence('1', false, baseDate, '14:00', 50, 'Maria', '11977776666', true);
+      mockRepository.finbyId.mockResolvedValue(time);
+      mockRepository.update.mockResolvedValue(Time.persistence('1', true, baseDate, '14:00', 50, 'Maria', '11977776666', false));
+
+      await service.uncheckTime('1');
+
+      expect(mockRevenueRepository.incrementMonthRevenue).toHaveBeenCalledWith(
+        baseDateSP.month() + 1,
+        baseDateSP.year(),
+        -50,
+        -1
+      );
+      const updatedTime = mockRepository.update.mock.calls[0][0] as Time;
+      expect(updatedTime.available).toBe(true);
+      expect(updatedTime.counted).toBe(false);
+    });
+
+    it('não deve estornar a revenue se o horário desmarcado não foi contabilizado', async () => {
+      const time = Time.persistence('1', false, baseDate, '14:00', 50, 'Maria', '11977776666', false);
+      mockRepository.finbyId.mockResolvedValue(time);
+      mockRepository.update.mockResolvedValue(Time.persistence('1', true, baseDate, '14:00', 50, 'Maria', '11977776666', false));
+
+      await service.uncheckTime('1');
+
+      expect(mockRevenueRepository.incrementMonthRevenue).not.toHaveBeenCalled();
+      const updatedTime = mockRepository.update.mock.calls[0][0] as Time;
+      expect(updatedTime.available).toBe(true);
     });
   });
 

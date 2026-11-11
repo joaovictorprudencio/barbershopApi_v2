@@ -13,7 +13,8 @@ export class Time {
         public time: string,
         public price: number,
         public nameCustumer: string,
-        public phoneCustumer: string
+        public phoneCustumer: string,
+        public counted: boolean = false
     ) {}
 
     public static create(
@@ -23,9 +24,10 @@ export class Time {
         time: string,
         price: number,
         nameCustumer: string,
-        phoneCustumer: string
+        phoneCustumer: string,
+        counted: boolean = false
     ): Time {
-        return new Time(id, available, date, time, price, nameCustumer, phoneCustumer);
+        return new Time(id, available, date, time, price, nameCustumer, phoneCustumer, counted);
     }
 
     public static persistence(
@@ -35,9 +37,10 @@ export class Time {
         time: string,
         price: number,
         nameCustumer: string,
-        phoneCustumer: string
+        phoneCustumer: string,
+        counted: boolean = false
     ): Time {
-        return new Time(id, available, date, time, price, nameCustumer, phoneCustumer);
+        return new Time(id, available, date, time, price, nameCustumer, phoneCustumer, counted);
     }
 
     public toObject(): Record<string, any> {
@@ -48,7 +51,8 @@ export class Time {
             time: this.time,
             price: this.price,
             nameCustumer: this.nameCustumer,
-            phoneCustumer: this.phoneCustumer
+            phoneCustumer: this.phoneCustumer,
+            counted: this.counted
         };
     };
 

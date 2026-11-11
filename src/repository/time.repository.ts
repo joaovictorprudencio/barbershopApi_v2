@@ -9,4 +9,7 @@ export interface TimeRepository {
     delete(timeId: string): Promise<void>;
     deleteForAll(date:Date): Promise<void>;
     validationData(date:Date, time:string, available:boolean):Promise <Time|null>;
+    findUncountedUnavailable(): Promise<Time[]>;
+    markAsCounted(ids: string[]): Promise<void>;
+    existsByDateAndState(date: Date, available: boolean): Promise<boolean>;
 }

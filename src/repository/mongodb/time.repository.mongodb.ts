@@ -30,7 +30,8 @@ export class TimeRepositoryMongo implements TimeRepository {
           timeExist.time,
           timeExist.price ?? 0,
           timeExist.nameCustumer,
-          timeExist.phoneCustumer
+          timeExist.phoneCustumer,
+          timeExist.counted ?? false
         );
         
     }
@@ -67,7 +68,8 @@ export class TimeRepositoryMongo implements TimeRepository {
                         available:time.available,
                         price: time.price ?? 0,
                         nameCustumer:time.nameCustumer,
-                        phoneCustumer: time.phoneCustumer
+                        phoneCustumer: time.phoneCustumer,
+                        counted: time.counted ?? false
                       }
             },
             { new: true}
@@ -84,7 +86,8 @@ export class TimeRepositoryMongo implements TimeRepository {
             updatedTime.time,
             updatedTime.price ?? 0,
             updatedTime.nameCustumer,
-            updatedTime.phoneCustumer
+            updatedTime.phoneCustumer,
+            updatedTime.counted ?? false
 
         )
     }
@@ -110,7 +113,8 @@ export class TimeRepositoryMongo implements TimeRepository {
             findTime.time,
             findTime.price ?? 0,
             findTime.nameCustumer,
-            findTime.phoneCustumer
+            findTime.phoneCustumer,
+            findTime.counted ?? false
         );
     } catch (error) {
         console.error(`Erro ao buscar time com ID ${timeId}:`, error);
@@ -134,7 +138,8 @@ export class TimeRepositoryMongo implements TimeRepository {
                 time.time,
                 time.price ?? 0,
                 time.nameCustumer,
-                time.phoneCustumer
+                time.phoneCustumer,
+                time.counted ?? false
             ));
             
     }
@@ -158,7 +163,8 @@ export class TimeRepositoryMongo implements TimeRepository {
            timeForDate.time,
            timeForDate.price ?? 0,
            timeForDate.nameCustumer,
-           timeForDate.phoneCustumer
+           timeForDate.phoneCustumer,
+           timeForDate.counted ?? false
        );
     }
 
@@ -168,13 +174,45 @@ export class TimeRepositoryMongo implements TimeRepository {
     }
 
 
-   async deleteForAll(date: Date): Promise<void> {
+    async deleteForAll(date: Date): Promise<void> {
         await TimeModel.deleteMany({
             date:{
                 $lt: date
             }
         });
     }
+
+    async findUncountedUnavailable(): Promise<Time[]> {
+        const times = await TimeModel.find({ available: false, counted: false });
+
+        return times.map(time => Time.persistence(
+            time.id,
+            time.available,
+            time.date,
+            time.time,
+            time.price ?? 0,
+            time.nameCustumer,
+            time.phoneCustumer,
+            time.counted ?? false
+        ));
+    }
+
+    async markAsCounted(ids: string[]): Promise<void> {
+        if (!ids || ids.length === 0) {
+            return;
+        }
+
+        await TimeModel.updateMany(
+            { _id: { $in: ids } },
+            { $set: { counted: true } }
+        );
+    }
+
+    async existsByDateAndState(date: Date, available: boolean): Promise<boolean> {
+        const exists = await TimeModel.exists({ date, available });
+        return exists !== null;
+    }
+
 
 
 

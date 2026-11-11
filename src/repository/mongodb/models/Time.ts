@@ -7,6 +7,7 @@ export interface ITime extends Document {
   price: number;
   nameCustumer: string;
   phoneCustumer: string;
+  counted: boolean;
 }
 
 const TimeSchema = new Schema<ITime>({
@@ -16,6 +17,7 @@ const TimeSchema = new Schema<ITime>({
   price: { type: Number, default: 0 },
   nameCustumer: { type: String, required: true },
   phoneCustumer: { type: String, required: true },
+  counted: { type: Boolean, default: false },
 });
 
 TimeSchema.index({ date: 1, time: 1 }, { unique: true });

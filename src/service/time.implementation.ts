@@ -64,11 +64,17 @@ export class TimeServiceIplement implements TimeService {
 
     public async generateTime(): Promise<void> {
 
-        await this.updateRevenueBeforeClear();
+        await this.processRevenueFromTimes();
         await this.clearDB();
 
         const todayDate = dayjs().tz('America/Sao_Paulo').startOf('day').toDate();
-   
+
+        const routineAlreadyGenerated = await this.timeRepository.existsByDateAndState(todayDate, true);
+
+        if (routineAlreadyGenerated) {
+            console.log('ℹ️ Rotina de hoje já foi gerada. Nenhum horário novo criado.');
+            return;
+        }
         
 
         const timeSlots = [
@@ -102,23 +108,24 @@ export class TimeServiceIplement implements TimeService {
 
     }
 
-    private async updateRevenueBeforeClear(): Promise<void> {
+    private async processRevenueFromTimes(): Promise<void> {
         try {
-            const unavailableTimes = await this.timeRepository.findByState(false);
+            const uncountedTimes = await this.timeRepository.findUncountedUnavailable();
 
-            if (!unavailableTimes || unavailableTimes.length === 0) {
+            if (!uncountedTimes || uncountedTimes.length === 0) {
                 return;
             }
 
-            const grouped = new Map<string, { month: number; year: number; priceTotal: number; quantity: number }>();
+            const grouped = new Map<string, { month: number; year: number; priceTotal: number; quantity: number; ids: string[] }>();
 
-            for (const time of unavailableTimes) {
-                const date = dayjs(time.date);
+            for (const time of uncountedTimes) {
+                const date = dayjs(time.date).tz('America/Sao_Paulo');
                 const key = `${date.year()}-${date.month() + 1}`;
 
-                const group = grouped.get(key) ?? { month: date.month() + 1, year: date.year(), priceTotal: 0, quantity: 0 };
+                const group = grouped.get(key) ?? { month: date.month() + 1, year: date.year(), priceTotal: 0, quantity: 0, ids: [] };
                 group.priceTotal += time.price ?? 0;
                 group.quantity += 1;
+                group.ids.push(time.id);
                 grouped.set(key, group);
             }
 
@@ -129,6 +136,7 @@ export class TimeServiceIplement implements TimeService {
                     group.priceTotal,
                     group.quantity
                 );
+                await this.timeRepository.markAsCounted(group.ids);
                 console.log(`💰 Revenue ${group.month}/${group.year} atualizada: +${group.priceTotal} (+${group.quantity} serviços)`);
             }
         } catch (error) {
@@ -293,7 +301,8 @@ export class TimeServiceIplement implements TimeService {
                 timeFind.time,
                 timeFind.price,
                 timeFind.nameCustumer,
-                timeFind.phoneCustumer
+                timeFind.phoneCustumer,
+                timeFind.counted
             );
         }
 
@@ -313,7 +322,20 @@ export class TimeServiceIplement implements TimeService {
         }
 
         if (timeUpdate) {
+
+            if (timeUpdate.counted) {
+                const d = dayjs(timeUpdate.date).tz('America/Sao_Paulo');
+                await this.revenueRepository.incrementMonthRevenue(
+                    d.month() + 1,
+                    d.year(),
+                    -(timeUpdate.price ?? 0),
+                    -1
+                );
+                console.log(`↩️ Revenue ${d.month() + 1}/${d.year()} estornada: -${timeUpdate.price} (-1 serviço)`);
+            }
+
             timeUpdate.available = true;
+            timeUpdate.counted = false;
             await this.timeRepository.update(timeUpdate);
         }
 
